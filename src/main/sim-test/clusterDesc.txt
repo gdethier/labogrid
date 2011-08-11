@@ -1,0 +1,65 @@
+Resource0
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource1
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource2
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource3
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource4
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource5
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource6
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource7
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource8
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource9
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource10
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource11
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665
+Resource12
+1
+lb.lattice.d3.q19.D3Q19DefaultLatticelaboGrid.operators.NonBlockingBorderSenderlaboGrid.operators.InPlaceStreamlaboGrid.operators.BorderFillerlb.operators.d3.q19.D3Q19DoublePressureOperatorlb.operators.d3.q19.D3Q19SRTCollisionOperatorlaboGrid.operators.WaitBorderSent
+1
+(30,30,30) 965665

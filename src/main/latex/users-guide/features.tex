@@ -1,0 +1,135 @@
+\chapter{Features}
+\label{sec_feat}
+
+This chapter presents the main features of LaBoGrid. These are described in
+following sub-sections.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Configuration}
+
+LaBoGrid's configuration and the simulations it executes are described in a
+single configuration file given as input when executing LaBoGrid. See
+chapter~\ref{sec_conf} for more details.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Execution environments}
+
+LaBoGrid was designed to be executed on cluster of heterogeneous computers. It
+is able to balance efficiently the processing load among available computers in
+order to minimize simulations execution time (see sections~\ref{sec_arch_load}
+and~\ref{sec_conf_middle_load}). In addition, LaBoGrid features mechanisms that
+render it tolerant to failures i.e. unexpected interruptions of some processes
+(see sections~\ref{sec_arch_fault} and~\ref{sec_conf_middle_fault}).
+
+It can also be executed on a single computer and efficiently make use of any
+number of available cores.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Flow simulation}
+
+LaBoGrid is able to simulate monophasic 3D flows in potentially complex
+structures. Lattice Boltzmann methods are used. A D3Q19 lattice (see
+section~\ref{sec_conf_lbConf_latt}) represents the state of the flow which is
+driven either by pressure conditions, either by a body force applied at each
+point of the fluid.
+
+Two collision operators (see section~\ref{sec_conf_proc_op})
+are available~: a Single Relaxation Time (SRT) operator\footnote{The SRT
+operator is actually the well known Bhatnagar--Gross--Krook (BGK) operator.}
+and a Multiple Relaxation Times (MRT) operator (for more details about these
+operators, see the thesis of D. A. Beugre~\cite{Beugre10}). The MRT operator is
+more stable numerically than the SRT operator, in particular when simulating
+turbulent flows. However, it is much more complex to compute (a multiplication
+by about 15 of execution time was observed for simulations using MRT instead of
+SRT).
+
+The solid (see section~\ref{sec_conf_lbConf_sol}) the fluid is flowing through is
+represented using a bitmap i.e. a 3D array of same size as lattice indicating,
+for each point, if it is an obstacle or not.
+
+Pressure conditions (see section~\ref{sec_conf_proc_op}) are configured by
+giving the pressure applied to the input face of the lattice and the pressure
+applied on the output face of the lattice. These 2 faces are parallel, the flow
+therefore follows one of the space axises.
+
+The body force (see section~\ref{sec_conf_proc_op}) applied at each point of the
+fluid is given by the components of the force along $x$, $y$ and $z$ axises.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Probes}
+\label{sec_feat_prob}
+
+Probes can be setup in order to regularly follow some properties of the flow
+(see section~\ref{sec_conf_proc_log}). Available probes measure the speed and
+density of fluid at given points or for complete slices of the lattice. New
+probes may easily be developed in order to extend LaBoGrid's capabilities (see
+section~\ref{sec_ext_log}).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Simulations workflow}
+\label{sec_feat_work}
+
+LaBoGrid is able to execute a sequence of LB flow simulations. The result of
+each simulation can be stored to disk and/or be reused as starting point
+for subsequent simulation. The result of a simulation can be reused later to
+resume the simulation or to be post-processed. Section~\ref{sec_conf_exp}
+explains how such workflows can be described.
+
+Simulation workflows enable to automatically store the state of a simulation at
+given points in time or to change some simulation parameters, like used probes,
+during a simulation. For example, in a simulation lasting 10000 time steps,
+the state of the flow is required at steps 5000 and 10000, and a probe must be
+used from steps 5000 to 7000 in order to follow flow speed at some given points
+of the lattice. The simulation can be desrcribed as a workflow of
+3~simulations:
+
+\begin{itemize}
+\setlength{\itemsep}{0ex}
+	\item time steps 0--5000: no probe is used, result is stored onto disk at the
+	end of the simulation;
+	\item time steps 5000--7000: a probe is used to regularly measure flow's
+	speed at given points, result is not stored onto disk;
+	\item time steps 7000--10000: no probe is used, result is stored onto disk at
+	the end of the simulation;
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Post-processing}
+
+LaBoGrid itself does not provide post-processing capabilities but includes a
+tool that allows to convert files resulting from a simulation into portable text
+files whose content is easily exploitable (see section~\ref{sec_add_conv}).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Data handling server}
+\label{sec_feat_stand}
+
+LaBoGrid consumes and produces large amounts of data. Solid and/or result files
+may be required for the execution of a simulation. In addition, the result of a
+simulation may be stored. Finally, probes produce informations that should also
+be stored in order to be processed.
+
+When executing simulations on a single machine, all data are read from and
+written to disk. When executing LaBoGrid on a cluster, input files must be
+available for each computer of the cluster. In addition, it may be convinient
+that all result files are centralized on a single computer the experimenter has
+easy access to.
+
+LaBoGrid therefore provides a ``stand alone server'' (see
+section~\ref{sec_add_sas}). This application is executed on a computer that
+will:
+
+\begin{itemize}
+\setlength{\itemsep}{0ex}
+	\item provide input files to cluster computers,
+	\item retrieve result files from cluster computers,
+	\item log measures received from probes.
+\end{itemize}
+

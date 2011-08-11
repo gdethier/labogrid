@@ -1,0 +1,29 @@
+/*
+ * #%L
+ * LaBoGrid
+ * %%
+ * Copyright (C) 2011 LaBoGrid Team
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the 
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public 
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-3.0.html>.
+ * #L%
+ */
+/**
+ * Contains the implementation of a LaBoGrid Task in the context of the
+ * simple Master-Worker architecture.
+ * A LaBoGrid Task essentially waits for configuration data coming from
+ * Controller in order to execute a sequence of simulations. At the end
+ * of each simulation, the result may be retrived by the Controller.
+ */
+package laboGrid.impl.central.task;

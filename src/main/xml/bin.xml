@@ -1,0 +1,93 @@
+<!--
+  #%L
+  LaBoGrid
+  %%
+  Copyright (C) 2011 LaBoGrid Team
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the 
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public 
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>bin</id>
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+
+  <fileSets>
+
+    <!-- LaBoGrid scripts -->
+    <fileSet>
+      <directory>${project.basedir}/src/main/bash/sim-helpers/</directory>
+      <outputDirectory>bin</outputDirectory>
+      <filtered>true</filtered>
+      <includes>
+        <include>README*</include>
+        <include>*.sh</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/src/main/bash/sim-helpers/lib/</directory>
+      <outputDirectory>bin/lib</outputDirectory>
+      <includes>
+        <include>*.sh</include>
+      </includes>
+    </fileSet>
+    
+    <!-- Configuration XML schema -->
+    <fileSet>
+      <directory>${project.basedir}/src/main/schema/</directory>
+      <outputDirectory>bin/lib</outputDirectory>
+      <includes>
+        <include>*.xsd</include>
+      </includes>
+    </fileSet>
+    
+    <!-- sample files -->
+    <fileSet>
+      <directory>${project.basedir}/src/main/bash/build-helpers/samples/</directory>
+      <outputDirectory>samples</outputDirectory>
+      <includes>
+        <include>*.xml</include>
+        <include>*.gz</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+
+  <files>
+    <!-- All-dep JAR -->
+    <file>
+      <source>${project.basedir}/target/labogrid-${project.version}-jar-all-dep.jar</source>
+      <destName>labogrid.jar</destName>
+      <outputDirectory>bin/lib</outputDirectory>
+  	</file>
+  	
+  	<!-- User's guide -->
+  	<file>
+      <source>${project.basedir}/target/latex/users-guide/users-guide.pdf</source>
+      <outputDirectory>doc</outputDirectory>
+  	</file>
+  	
+  	<!-- Bin-dist README -->
+  	<file>
+      <source>${project.basedir}/src/main/txt/README-bin-dist</source>
+      <destName>README</destName>
+      <outputDirectory>.</outputDirectory>
+      <filtered>true</filtered>
+  	</file>
+  </files>
+  
+</assembly>

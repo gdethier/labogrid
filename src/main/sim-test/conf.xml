@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  LaBoGrid
+  %%
+  Copyright (C) 2011 LaBoGrid Team
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the 
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public 
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+
+<LaBoGridConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../schema/labogrid-conf-schema.xsd">
+
+	<Experiment>
+		<SimulationSequence>
+			<Simulation
+				iterationsCount="10" lbConfiguration="conf0"
+				processingChain="proc0" startingIteration="0">
+				<Input clientClass="laboGrid.ioClients.standalone.StandAloneInputClient"
+					parameters="src/main/sim-test/ Resource0 50200" />
+				<Output clientClass="laboGrid.ioClients.standalone.StandAloneOutputClient"
+					parameters="524288 src/main/sim-test/out/ Resource0 50200" />
+			</Simulation>
+			<NextSimulation
+				iterationsCount="10" lbConfiguration="conf0"
+				processingChain="proc0">
+				<Output clientClass="laboGrid.ioClients.standalone.StandAloneOutputClient"
+					parameters="524288 src/main/sim-test/out2/ Resource0 50200" />
+			</NextSimulation>
+		</SimulationSequence>
+		<SimulationSequence>
+		<Simulation
+			iterationsCount="80"
+			lbConfiguration="conf0"
+			processingChain="proc1"
+			startingIteration="20">
+			<Input
+				clientClass="laboGrid.ioClients.standalone.StandAloneInputClient"
+				parameters="src/main/sim-test/
+					Resource0 50200" />
+			<Output
+				clientClass="laboGrid.ioClients.standalone.StandAloneOutputClient"
+				parameters="524288 src/main/sim-test/out/
+					Resource0 50200" />
+		</Simulation>
+	</SimulationSequence>
+	</Experiment>
+
+	<LBConfiguration id="conf0">
+		<Lattice class="laboGrid.lb.lattice.d3.q19.D3Q19DefaultLattice" size="(44,44,44)" />
+		<Solid class="laboGrid.lb.solid.d3.D3SolidBitmap" fileId="MU44.mat.gz" type="compressed-ascii" />
+		<SubLattices generatorClass="laboGrid.graphs.model.d3.D3CuboidsGenerator"
+			minSubLatticesCount="9" />
+	</LBConfiguration>
+
+	<ProcessingChain id="proc0">
+		<Operator class="laboGrid.procChain.operators.NonBlockingBorderSender" parameters="" />
+		<Operator class="laboGrid.procChain.operators.InPlaceStream"
+			parameters="" />
+		<Operator class="laboGrid.procChain.operators.BorderFiller" parameters="" />
+		<Operator class="laboGrid.procChain.operators.d3.q19.D3Q19PressureOperator"
+			parameters="0 1.001 0.999" />
+		<Operator class="laboGrid.procChain.operators.d3.q19.D3Q19MRTCollisionOperator"
+			parameters="1 0 0 0 20" />
+		<Operator class="laboGrid.procChain.operators.WaitBorderSent" parameters="" />
+		<Logger id="iter0" rate="1"
+			loggerClass="laboGrid.procChain.loggers.IterationLogger"
+			loggerParameters=""
+			clientClass="laboGrid.procChain.loggers.client.StandAloneLogClient"
+			clientParameters="Resource0 50200"/>
+		<Logger id="points0" rate="3"
+			loggerClass="laboGrid.procChain.loggers.d3.D3PointsLogger"
+			loggerParameters="(0,0,0) (10,10,10) (22,22,22)"
+			clientClass="laboGrid.procChain.loggers.client.StandAloneLogClient"
+			clientParameters="Resource0 50200"/>
+		<Logger id="slices0" rate="3"
+			loggerClass="laboGrid.procChain.loggers.d3.D3SliceLogger"
+			loggerParameters="XY 22"
+			clientClass="laboGrid.procChain.loggers.client.StandAloneLogClient"
+			clientParameters="Resource0 50200"/>
+	</ProcessingChain>
+
+	<LaBoGridMiddleware>
+		<Stabilizer timeout="5000"/>
+		<LoadBalancing buildPowerModel="false" />
+		<FaultTolerance replicationEnabled="false" backupRate="100"
+			chunkSize="524288" compressFiles="raw" neighborsCount="1" />
+	</LaBoGridMiddleware>
+
+</LaBoGridConfiguration>
+

@@ -1,0 +1,75 @@
+\chapter{Extension}
+\label{sec_ext}
+
+LaBoGrid's configuration file, described in chapter~\ref{sec_conf}, contains
+references to classes whose implementation is provided by LaBoGrid. However,
+most of them can be replaced by classes provided by the user. For example,
+one may want to use its own collision operator. In this case, it can
+implement its own collision operator and link to it in a processing chain (see
+section~\ref{sec_conf_proc}).
+
+This chapter presents the base classes and interfaces LaBoGrid provides and that
+can be subclassed or implemented by the user to extend LaBoGrid's capabilities.
+More details are available in source code.
+
+In order to be used, classes provided by the user must be available in JVM's
+class-path.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Lattice}
+
+\verb|Lattice| element (see section~\ref{sec_conf_lbConf_latt}) provides the
+name of a class implementing a lattice. This class must be a subclass of
+\begin{center}
+\texttt{laboGrid.lb.lattice.Lattice}
+\end{center}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Solid}
+
+\verb|Solid| element (see section~\ref{sec_conf_lbConf_sol}) provides the
+name of a class implementing a solid. This class must be a subclass of
+\begin{center}
+\texttt{laboGrid.lb.solid.Solid}
+\end{center}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Input and output}
+
+\verb|Input|/\verb|Output| element (see section~\ref{sec_conf_exp_io})
+provides the name of a class implementing an input/output. This class must be a
+subclass of
+\begin{center}
+\texttt{laboGrid.ioClients.InputClient}\\
+or\\
+\texttt{laboGrid.ioClients.OutputClient}
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Processing chain operator}
+
+\verb|Operator| element (see section~\ref{sec_conf_proc_op}) provides the
+name of a class implementing the operator. This class must be a subclass of
+\begin{center}
+\texttt{laboGrid.procChain.operators.LBOperator}
+\end{center}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Processing chain logger}
+\label{sec_ext_log}
+
+\verb|Logger| element (see section~\ref{sec_conf_proc_log}) provides the
+name of a class implementing the logger. This class must be a subclass of
+\begin{center}
+\texttt{laboGrid.procChain.loggers.LBLogger}
+\end{center}
+
+\verb|Logger| element also provides the name of a class implementing a client
+used by the logger. A class implementing a client must be a subclass of
+\begin{center}
+\texttt{laboGrid.procChain.loggers.client.LogClient}
+\end{center}

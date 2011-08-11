@@ -1,0 +1,1459 @@
+\chapter{Configuration}
+\label{sec_conf}
+
+This chapter describes the XML configuration file taken as input by LaBoGrid by
+documenting the XML schema file describing it. This file,
+\texttt{labogrid-conf-schema.xsd}, is contained by folder
+\texttt{src/main/schema/} of LaBoGrid's source tree.
+
+\section{XML configuration file}
+\label{sec_conf_xml}
+
+A LaBoGrid configuration file is composed of 4 parts:
+
+\begin{enumerate}
+	\item a description of the simulations' workflow (see 
+	section~\ref{sec_feat_work}) LaBoGrid must execute (see
+	section~\ref{sec_conf_exp});
+	\item simuation parameters (solid file, lattice size, etc.) that can be used
+	for several simulations (see section~\ref{sec_conf_lbConf}), at least one set
+	of parameters must be provided;
+	\item ``processing chains'' describing the chains of operations (streaming,
+	collision, etc.) to apply at each time step of a simulation; a same chain can
+	be used for several simulations (see section~\ref{sec_conf_proc}), at least
+	one chain must be given;
+	\item parameters for LaBoGrid's middleware part (load balancing, fault
+	tolerance, etc. (see section~\ref{sec_conf_middle}).
+\end{enumerate}
+
+Following XML schema snippet describes a complete LaBoGrid configuration file:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:element name="LaBoGridConfiguration">
+	<xs:complexType>
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Experiment" type="ExperimentType" />
+		<xs:sequence minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="LBConfiguration"
+				type="LBConfType" />
+		</xs:sequence>
+		<xs:sequence minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="ProcessingChain"
+				type="ProcChainType" />
+		</xs:sequence>
+		<xs:element name="LaBoGridMiddleware"
+			type="LBGMiddlewareType" />
+		</xs:sequence>
+	</xs:complexType>
+</xs:element>
+\end{Verbatim}
+
+Following table shows which part each element describes:
+
+\begin{tabular}{|l|l|}
+\hline
+\verb|<Experiment>| & simulations' workflow\\
+\hline
+\verb|<LBConfiguration>| & a simuation's parameters \\
+\hline
+\verb|<ProcessingChain>| & a chain of operations \\
+\hline
+\verb|<LaBoGridMiddleware>| & LaBoGrid's middleware parameters \\
+\hline
+\end{tabular}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiment}
+\label{sec_conf_exp}
+
+The \verb|<Experiment>| element is composed of a sequence of
+simulations sequences. Each sequence represents ``chained simulations'':
+the result of a simulation of the sequence is always used as starting point by
+next simulation in the sequence, if it exists.
+
+
+\subsection{Input and output}
+\label{sec_conf_exp_io}
+
+For every simulation, an ``input'' and an ``output'' can be given. These are
+essentially ways of respectively retrieving and providing files: to be
+executed, a simulation needs to retrieve input files (solid or result files) and
+at the end of a simulation, the result of the simulation may be stored to be reused
+(in order to resume simulation or for post-processing).
+
+An input/output has 2 parameters: a ``client'' class and 
+the parameters of the client. The client implements a method to retrieve/provide
+files. Following XML schema snippet provides the definition of an element
+describing an input or an output. \texttt{clientClass} attribute is the class of
+the client and \texttt{parameters} attribute is the parameters of the client.
+The parsing of the parameters depends on the client but they are generally
+separated by spaces.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="InOutType">
+	<xs:attribute name="clientClass" type="xs:string"
+		use="required"/>
+	<xs:attribute name="parameters" type="xs:string"
+		use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+LaBoGrid provides two types of clients: a local client and a remote
+client. The local client reads/writes files from/to disk. The remote client
+requests/submits files from/to a stand alone server (see
+section~\ref{sec_feat_stand}).
+
+Local input client is implemented by following class:
+%
+\begin{center}
+\begin{tt}
+laboGrid.ioClients.local.LocalInputClient
+\end{tt}
+\end{center}
+%
+It takes 1 argument: the path to the folder containing input files.
+
+Local output client is implemented by following class:
+%
+\begin{center}
+\begin{tt}
+laboGrid.ioClients.local.LocalOutputClient
+\end{tt}
+\end{center}
+%
+It takes 1 argument: the path to the folder the output files must be stored
+into.
+
+Remote input client is implemented by following class:
+%
+\begin{center}
+\begin{tt}
+laboGrid.ioClients.standalone.StandAloneInputClient
+\end{tt}
+\end{center}
+%
+It takes 3 argument: the path to the folder containing input files on the
+computer running the stand alone server, the host name of the computer running
+stand alone server and the port the stand alone server accepts connections on.
+
+Remote output client is implemented by following class:
+%
+\begin{center}
+\begin{tt}
+laboGrid.ioClients.standalone.StandAloneOutputClient
+\end{tt}
+\end{center}
+%
+It takes 4 argument: the maximum size in bytes of the file chunks sent to the
+stand alone server (increasing this parameter should accelerate transfers but
+increase memory usage), the path to the folder containing input files on the
+computer running the stand alone server, the host name of the computer running
+stand alone server and the port the stand alone server accepts connections on.
+
+\subsection{Simulations}
+\label{sec_conf_exp_sim}
+
+The first simulation of a sequence has following parameters:
+
+\begin{itemize}
+\setlength{\itemsep}{0ex}
+	\item an ``input'' i.e. a way of retriving input files (solid or result
+	files);
+	\item a ``starting iteration'' i.e. the first time step that will be executed; if
+	this value is greater than 0, the result of a previous simulation, which must
+	be available, is loaded from input;
+	\item an ``iterations count'' i.e. the number of time steps to execute;
+	\item the identifier of a processing chain;
+	\item the identifier of a set of simulation parameters.
+	\item an ``output'' i.e. a way of providing output files (result files);
+\end{itemize}
+
+The input must be given for first simulation of a sequence. For next
+simulations, it may be omitted because they reuse the result of previous
+simulation. However, it may be interesting to provide an input if the result of
+previous simulation was stored through its output. In this case, if a
+severe failure of cluster computers leads to the result of previous simulation
+to be unavailable despite fault tolerance mechanism (see
+section~\ref{sec_arch_fault}), it can still be retrieved from the input.
+
+The starting iteration must be given for first simulation. It is omitted for
+next simulations of the sequence because this value depends on the starting
+iteration of previous simulation and the number of iterations it executes. For
+example, if first simulation's starting iteration is 0 and iterations count is
+10, the starting iteration of next simulation is necessarily 10.
+
+The iterations count, identifier of a processing chain and identifier of a set
+of simulation parameters must be given for every simulation.
+
+The output is always optional.
+
+Following XML schema snippet describes the elements \verb|<Simulation>|, which
+represents the first simulation of a sequence, and \verb|<NextSimulation>|,
+which represents next simulations. \verb|startingIteration| attribute is the
+starting iteration, \texttt{iterations\-Count} attribute is the iterations
+count, \verb|processingChain| attribute is the identifier of a processing chain and
+\verb|lbConfiguration| attribute is the identifier of a set of simulation
+parameters.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="SimulationType">
+	<xs:sequence minOccurs="0" maxOccurs="1">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Input" type="InOutType"/>
+		</xs:sequence>
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:element name="Output" type="InOutType"/>
+		</xs:sequence>
+	</xs:sequence>
+	<xs:attribute name="startingIteration"
+		type="xs:nonNegativeInteger" use="required"/>
+	<xs:attribute name="iterationsCount"
+		type="xs:nonNegativeInteger" use="required"/>
+	<xs:attribute name="processingChain"
+		type="xs:string" use="required"/>
+	<xs:attribute name="lbConfiguration"
+		type="xs:string" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="NextSimulationType">
+	<xs:sequence minOccurs="0" maxOccurs="1">
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:element name="Input" type="InOutType"/>
+		</xs:sequence>
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:element name="Output" type="InOutType"/>
+		</xs:sequence>
+	</xs:sequence>
+	<xs:attribute name="iterationsCount"
+		type="xs:nonNegativeInteger" use="required"/>
+	<xs:attribute name="processingChain"
+		type="xs:string" use="required"/>
+	<xs:attribute name="lbConfiguration"
+		type="xs:string" use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+The \verb|<Experiment>| element is described by following XML schema snippet:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="ExperimentType">
+	<xs:sequence minOccurs="1" maxOccurs="unbounded">
+		<xs:element name="SimulationSequence"
+			type="SimulationSequenceType"/>
+	</xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="SimulationSequenceType">
+	<xs:sequence minOccurs="1" maxOccurs="1">
+		<xs:element name="Simulation"
+			type="SimulationType"/>
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="NextSimulation"
+				type="NextSimulationType"/>
+		</xs:sequence>
+	</xs:sequence>
+</xs:complexType>
+\end{Verbatim}
+
+
+\subsection{Example}
+
+Below XML snippet gives an example of LaBoGrid experiment composed of 3
+simulations, the first 2 being chained. We suppose a stand alone server is
+running on computer ``Resource0'' and accepts connections on TCP port 50200.
+Input files are taken from folder \verb|src/main/sim-test/| and output files
+are stored into folder \texttt{src/main/sim-\linebreak[1]{}test/out/} for all
+simulations (see parameters of clients). Given
+below experiment description, LaBoGrid will:
+
+\begin{enumerate}
+	\item execute iterations 0--10 of a simulation using parameters ``conf0'' and
+	processing chain ``proc0'', input files are retrieved from stand alone server;
+	\item execute iterations 10--20 of a simulation using parameters ``conf0'' and
+	processing chain ``proc1'', result of previous simulation is used as starting
+	point, result files are sent to stand alone server;
+	\item execute iterations 20--100 of a simulation using parameters ``conf0'' and
+	processing chain ``proc1'', input files are retrieved from stand alone server;
+	the input files are the result files of simulation 2.
+\end{enumerate}
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<Experiment>
+	<SimulationSequence>
+		<Simulation
+			iterationsCount="10"
+			lbConfiguration="conf0"
+			processingChain="proc0"
+			startingIteration="0">
+			<Input
+				clientClass="laboGrid.ioClients.standalone.
+StandAloneInputClient"
+				parameters="src/main/sim-test/
+					Resource0 50200" />
+		</Simulation>
+		<NextSimulation
+			iterationsCount="10" lbConfiguration="conf0"
+			processingChain="proc1">
+			<Output
+				clientClass="laboGrid.ioClients.standalone.
+StandAloneOutputClient"
+				parameters="524288 src/main/sim-test/out/
+					Resource0 50200" />
+		</NextSimulation>
+	</SimulationSequence>
+	<SimulationSequence>
+		<Simulation
+			iterationsCount="80"
+			lbConfiguration="conf0"
+			processingChain="proc1"
+			startingIteration="20">
+			<Input
+				clientClass="laboGrid.ioClients.standalone.
+StandAloneInputClient"
+				parameters="src/main/sim-test/
+					Resource0 50200" />
+			<Output
+				clientClass="laboGrid.ioClients.standalone.
+StandAloneOutputClient"
+				parameters="524288 src/main/sim-test/out/
+					Resource0 50200" />
+		</Simulation>
+	</SimulationSequence>
+</Experiment>
+\end{Verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{LB Configurations}
+\label{sec_conf_lbConf}
+
+LaBoGrid's configuration file can contain one or several
+\verb|<LBConfiguration>| elements (see section~\ref{sec_conf_xml}), an element
+giving a set of simulation parameters. Each element has a unique identifier
+used by a simulation's description to link to it (see
+section~\ref{sec_conf_exp_sim}) and contains following simulation parameters:
+
+\begin{enumerate}
+	\item lattice type (dimensions, number of velocities, etc.) and size;
+	\item solid type (dimensions, bitmap, etc.), the name of the solid file (file
+	containing solid's descriptions), solid file's content type (binary, text,
+	compressed text);
+	\item a way of partitioning the lattice into sublattices (see
+	section~\ref{sec_arch_load}).
+\end{enumerate}
+
+An element is associated to each item above. Element \verb|<Lattice>| describes
+item 1, element \verb|<Solid>| describes item 2 and element \verb|<SubLattices>|
+describes item 3. A \verb|<LBConfiguration>| element is composed of one of each
+of these elements as described in following XML schema snippet (the \texttt{id}
+attribute is the identifier associated to the set of simulation parameters):
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="LBConfType">
+	<xs:sequence minOccurs="1" maxOccurs="1">
+		<xs:element name="Lattice" type="LatticeType"/>
+		<xs:element name="Solid" type="SolidType"/>
+		<xs:element name="SubLattices" type="SubLatticesType"/>
+	</xs:sequence>
+	<xs:attribute name="id" type="xs:string" use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+
+\subsection{Lattice}
+\label{sec_conf_lbConf_latt}
+
+\verb|<Lattice>| element provides the class of the lattice (its ``type'')
+and its size. It is described by following XML schema snippet, where
+\texttt{size} attribute is the size of the lattice and \texttt{class}
+attribute its class.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="LatticeType">
+	<xs:attribute name="size" type="xs:string" use="required"/>
+	<xs:attribute name="class" type="xs:string" use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+The size of the lattice must be given in the format \texttt{(x,y,z)} where
+\texttt{x}, \texttt{y} and \texttt{z} are positive integers. LaBoGrid provides
+following lattice class:
+%
+\begin{center}
+\texttt{laboGrid.lb.lattice.d3.q19.D3Q19DefaultLattice}
+\end{center}
+%
+This class represents a 3 dimensions lattice with 19 velocities (a D3Q19
+lattice).
+
+
+\subsection{Solid}
+\label{sec_conf_lbConf_sol}
+
+\verb|<Solid>| element provides the class of the solid (its ``type''),
+the solid file's name and the content type of the solid file. It is described
+by following XML schema snippet, where \texttt{fileId} attribute is the file
+name of solid file, \texttt{type} attribute the solid file content type and
+\texttt{class} attribute the class of the solid.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="SolidType">
+	<xs:attribute name="fileId" type="xs:string" use="required"/>
+	<xs:attribute name="type" type="SolidFileType" use="required"/>
+	<xs:attribute name="class" type="xs:string" use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+\texttt{fileId} is the path to the solid file relative to the folder containing
+input files given as parameter to input client (see
+section~\ref{sec_conf_exp_io}). \texttt{type} is the content type of solid file
+and \texttt{class} is the class of the solid to use.
+
+3 content types are supported by LaBoGrid: \texttt{bin}, \texttt{ascii} and
+\texttt{compressed-ascii}.
+
+\texttt{bin} content type is a serialized solid
+object. Note that in this case, solid class is overriden by the class of
+serialized object.
+
+\texttt{ascii} content type is a text file containing the
+size and the content of a 3D matrix, each element of the matrix being a number.
+If a number is not equal to 0, then the associated position in the lattice is
+an obstacle. Otherwise, it is not. Following pseudo-code illustrates how such a
+file can be produced:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+"Initialize matrix A of size (x, y, z)" ;
+"Print x to file" ;
+"Print y to file" ;
+"Print z to file" ;
+for(int k = 0; k < z; ++k) {
+	for(int j = 0; j < y; ++j) {
+		for(int i = 0; i < x; ++i) {
+			"Print A(i,j,k) to file" ;
+		}
+	}
+}
+\end{Verbatim}
+
+\texttt{compressed-ascii} is the same as \texttt{ascii} but the file is
+compressed using GZIP. In other words, if file \texttt{x.mat} contains an
+\texttt{ascii} solid, the file \texttt{x.mat.gz} obtained by compressing file
+\texttt{x.mat} with GZIP has content type \texttt{compressed-ascii}.
+
+LaBoGrid provides one solid class:
+
+\begin{center}
+\texttt{laboGrid.lb.solid.d3.D3SolidBitmap}
+\end{center}
+
+It represents 3D solids using a bitmap i.e. a 3D array of booleans.
+
+
+\subsection{Sublattices}
+
+\verb|<SubLattices>| element gives the minimum number of sublattices to generate
+and the method used to partition the lattice. The method to use is given by
+the class name of the partitioner, called ``generator'', to use. Following XML
+schema snippet describes \verb|<SubLattices>| element;
+\texttt{minSubLatticesCount} attribute gives the minimum number of sublattices
+to generate and \texttt{generatorClass} attribute gives the class of the
+generator to use:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="SubLatticesType">
+	<xs:attribute name="minSubLatticesCount" type="xs:integer"
+		use="required"/>
+	<xs:attribute name="generatorClass" type="xs:string"
+		use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+LaBoGrid provides 3 generators for 3D lattices: a cubes generator, a cuboids
+generator and a slices generator. They respectively have following classes:
+
+\begin{center}
+\texttt{laboGrid.graphs.model.d3.D3CubesGenerator}\\
+\texttt{laboGrid.graphs.model.d3.D3CuboidsGenerator}\\
+\texttt{laboGrid.graphs.model.d3.D3SliceGenerator}
+\end{center}
+
+Cubes generator tries to produce only
+cubic partitions. When this is not possible, some partitions may not be cubes.
+The cuboids generator
+produces cuboids that are all about the same size. Cuboids are, if possible, as
+close as possible to cubes. The slices generator produces slices of variable
+thickness in function of the requested number of sublattices. Note that with
+this generator, the number of sublattices cannot be greater than the greatest
+dimension of the lattice.
+
+The cuboids generator should be preferred in most cases: it produces sublattices
+of almost the same size, which a desirable behavior regarding used load
+balancing method (see section~\ref{sec_arch_load}), and produces sublattices
+mostly minimizing the amount of data to exchange between sublattices during
+simulation.
+
+The number of produced sublattices is the higher bound on the number of cores
+that can be used to execute a simulation. For example, if only 1 sublattice is
+produced and simulation is executed on a computer with 4 cores, only 1 core will
+be executing the simulation on the single produced sublattice. If the number of
+produced sublattices is equal to 4, then all cores will be used and the
+simulation's execution time will be reduced.
+
+
+\subsection{Example}
+
+Following parameters describe a simulation on a D3Q19 lattice of size
+$(44,44,44)$. Solid is read from file ``MU44.mat.gz'' (file contains compressed
+text representation of solid). Finally, lattice is partitioned into 9
+sublattices using cuboids generator.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<LBConfiguration id="conf0">
+	<Lattice class="laboGrid.lb.lattice.d3.q19.
+D3Q19DefaultLattice" size="(44,44,44)" />
+	<Solid class="laboGrid.lb.solid.d3.D3SolidBitmap"
+		fileId="MU44.mat.gz" type="compressed-ascii" />
+	<SubLattices generatorClass="laboGrid.graphs.model.d3.
+D3CuboidsGenerator" minSubLatticesCount="9" />
+</LBConfiguration>
+\end{Verbatim}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Processing chains}
+\label{sec_conf_proc}
+
+LaBoGrid's configuration file can contain one or several
+\verb|<ProcessingChain>| elements (see section~\ref{sec_conf_xml}), an element
+giving a chain of operations to execute each time step of a simulation. Each
+element has a unique identifier used by a simulation's description to link to it (see
+section~\ref{sec_conf_exp_sim}) and contains a sequence of ``chain elements''. A
+chain element is either a logger description or an operator description.
+
+Following XML schema snippet describes a \verb|<ProcessingChain>| element;
+\texttt{id} attribute is the identifier of the processing chain,
+\verb|<Operator>| element describes an operator and \verb|<Logger>| element
+describes a logger:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="ProcChainType">
+	<xs:sequence minOccurs="0" maxOccurs="unbounded">
+		<xs:group ref="ProcChainElement"/>
+	</xs:sequence>
+	<xs:attribute name="id" type="xs:string"/>
+</xs:complexType>
+
+<xs:group name="ProcChainElement">
+	<xs:choice>
+		<xs:element name="Operator" type="OperatorType"/>
+		<xs:element name="Logger" type="LoggerType"/>
+	</xs:choice>
+</xs:group>
+\end{Verbatim}
+
+
+\subsection{Operator}
+\label{sec_conf_proc_op}
+
+An operator is executed each time step and generally modifies the state of the
+lattice. Examples of operators are streaming operator, collision operator,
+pressure conditions operator, etc. An operator is described by the class
+implementing it and parameters used by this class.
+
+Following XML schema snippet describes \verb|<Operator>| element;
+\texttt{class} attribute is the class implementing the operator and
+\texttt{parameters} attribute the parameters to pass to the operator:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="OperatorType">
+	<xs:attribute name="class" type="xs:string" use="required"/>
+	<xs:attribute name="parameters" type="xs:string" use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+LaBoGrid provides operators described below.
+
+
+\subsubsection{Border filler}
+
+This operator waits for incoming densities coming from other sublattices.
+Incoming densities are inserted into sublattice upon reception. The operator
+terminates its execution when all incoming densities have been received.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class & \texttt{laboGrid.procChain.operators.BorderFiller}\\
+\hline
+Parameters & \\
+\hline
+\end{tabular}
+
+
+\subsubsection{In-place streamer}
+
+This operator executes in-place streaming. In-place streaming must be
+implemented by any lattice class.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class & \texttt{laboGrid.procChain.operators.InPlaceStream}\\
+\hline
+Parameters & \\
+\hline
+\end{tabular}
+
+
+\subsubsection{Border sender}
+
+This operator extracts outgoing densities from sublattice and stores them into
+output buffers. The content of these buffers is sent to other sublattices.
+Data sending is handled by another thread and does not pause the execution of
+the simulation.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class & \texttt{laboGrid.procChain.operators.NonBlockingBorderSender}\\
+\hline
+Parameters & \\
+\hline
+\end{tabular}
+
+
+\subsubsection{Operator waiting for borders to be sent}
+
+This operator pauses the simulation's execution until all outgoing densities
+have been sent. This is necessary before simulation goes to next time step if
+outgoing densities are sent using above border sender, otherwise output
+buffers' content may be overwritten before it was successfully sent.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class & \texttt{laboGrid.procChain.operators.WaitBorderSent}\\
+\hline
+Parameters & \\
+\hline
+\end{tabular}
+
+
+\subsubsection{SRT collision operator for D3Q19 lattices}
+
+This operator applies the SRT collision operator on a D3Q19 lattice.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.operators.d3.q19.D3Q19SRTCollision\linebreak{}Operator}\\
+\hline
+Parameters & {\begin{enumerate}
+	\item density of the fluid;
+	\item $x$ component of body force to apply at each point of the fluid;
+	\item $y$ component of body force to apply at each point of the fluid;
+	\item $z$ component of body force to apply at each point of the fluid;
+	\item block size, this parameter allows to enhance data
+	locallity. A block size of 50 should give decent results on
+	most computers.
+\end{enumerate}
+}\\
+\hline
+\end{tabular}
+
+
+\subsubsection{SRT collision operator with Smagorinsky's turbulent
+viscosity model for D3Q19 lattices}
+
+This operator applies the SRT collision operator combined with Smagorinsky's
+turbulent viscosity model on a D3Q19 lattice.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.operators.d3.q19.D3Q19SRTSmago\linebreak{}CollisionOperator}\\
+\hline
+Parameters & {\begin{enumerate}
+	\item density of the fluid;
+	\item $x$ component of body force to apply at each point of the fluid;
+	\item $y$ component of body force to apply at each point of the fluid;
+	\item $z$ component of body force to apply at each point of the fluid;
+	\item Smagorinsky subgrid constant;
+	\item block size, this parameter allows to enhance data
+	locallity. A block size of 50 should give decent results on
+	most computers.
+\end{enumerate}
+}\\
+\hline
+\end{tabular}
+
+
+\subsubsection{MRT collision operator for D3Q19 lattices}
+
+This operator applies the MRT collision operator on a D3Q19 lattice.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.operators.d3.q19.D3Q19MRTCollision\linebreak{}Operator}\\
+\hline
+Parameters & {\begin{enumerate}
+	\item density of the fluid;
+	\item $x$ component of body force to apply at each point of the fluid;
+	\item $y$ component of body force to apply at each point of the fluid;
+	\item $z$ component of body force to apply at each point of the fluid;
+	\item block size, this parameter allows to enhance data
+	locallity. A block size of 50 should give decent results on
+	most computers.
+\end{enumerate}
+}\\
+\hline
+\end{tabular}
+
+
+\subsubsection{MRT collision operator with Smagorinsky's turbulent
+viscosity model for D3Q19 lattices}
+
+This operator applies the MRT collision operator combined with Smagorinsky's
+turbulent viscosity model on a D3Q19 lattice.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.operators.d3.q19.D3Q19MRTSmago\linebreak{}CollisionOperator}\\
+\hline
+Parameters & {\begin{enumerate}
+	\item density of the fluid;
+	\item $x$ component of body force to apply at each point of the fluid;
+	\item $y$ component of body force to apply at each point of the fluid;
+	\item $z$ component of body force to apply at each point of the fluid;
+	\item Smagorinsky subgrid constant;
+	\item block size, this parameter allows to enhance data
+	locallity. A block size of 50 should give decent results on
+	most computers.
+\end{enumerate}
+}\\
+\hline
+\end{tabular}
+
+
+\subsubsection{Pressure conditions operator for D3Q19 lattices}
+
+This operator applies pressure conditions on two opposit faces of a D3Q19
+lattice.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.operators.d3.q19.D3Q19Pressure\linebreak{}Operator}\\
+\hline
+Parameters & {\begin{enumerate}
+	\item flow direction: 0~--~flow along $x$-axis, 1~--~flow along $y$-axis,
+	2~--~flow along $z$-axis;
+	\item input pressure ($\rho_{in}$): pressure applied on the input face
+	(generally a number slightly greater than 1);
+	\item output pressure ($\rho_{out}$): pressure applied on the output face
+	(generally a number slightly lower than 1).
+\end{enumerate}
+}\\
+\hline
+\end{tabular}
+
+
+\subsection{Logger}
+\label{sec_conf_proc_log}
+
+A logger is a probe (see section~\ref{sec_feat_prob}) that is not necessarily
+executed each time step. A logger is described by following parameters:
+
+\begin{itemize}
+	\item an identifier used to generate recognizable file names;
+	\item a ``rate'' throttling the frequence of executions of the logger,
+	a rate of $x$ means the logger is executed when iteration number is divisible
+	by $x$;
+	\item the class implementing the logger and the parameters used by this class;
+	\item a ``client'' class and parameters used by this class.
+\end{itemize}
+
+The concept of client is similar to the clients used in the context of
+simulation inputs and outputs (see section~\ref{sec_conf_exp_io}): a client is a
+way of logging the data produced by corresponding probe. LaBoGrid provides 2
+clients: a client logging data into a local file and a client sending data to
+the standalone server which writes data into a local file. 
+
+Following XML schema snippet describes \verb|<Logger>| element;
+\texttt{id} attribute is the identifier of the probe, \texttt{rate} attribute
+is the rate (see above), \texttt{loggerClass} is the name of the class
+implementing the probe, \texttt{loggerParameters} are the parameters taken by
+the probe, \texttt{clientClass} is the name of the class implementing a client
+and \texttt{clientParameters} are the parameters taken by the client:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="LoggerType">
+	<xs:attribute name="id" type="xs:string"
+		use="required"/>
+	<xs:attribute name="rate" type="xs:nonNegativeInteger"
+		use="required"/>
+	<xs:attribute name="loggerClass" type="xs:string"
+		use="required"/>
+	<xs:attribute name="loggerParameters" type="xs:string"
+		use="required"/>
+	<xs:attribute name="clientClass" type="xs:string"
+		use="required"/>
+	<xs:attribute name="clientParameters" type="xs:string"
+		use="required"/>
+</xs:complexType>
+\end{Verbatim}
+
+LaBoGrid provides 3 loggers and 2 clients. These are described below.
+
+
+\subsubsection{Iteration logger}
+
+This logger simply logs the current iteration of the simulation.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.loggers.IterationLogger}\\
+\hline
+Parameters & \\
+\hline
+\end{tabular}
+
+
+\subsubsection{Points logger}
+
+This logger logs the state of the flow (local density, speed) at given points.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.loggers.d3.D3PointsLogger}\\
+\hline
+Parameters & A space-separated list of points given in $(x,y,z)$ format
+(without spaces).\\
+\hline
+\end{tabular}
+
+
+\subsubsection{Slice logger}
+
+This logger logs the state of the flow (local density, speed) for a given
+slice of the lattice.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.loggers.d3.D3SliceLogger}\\
+\hline
+Parameters & \begin{enumerate}
+	\item slice type (can be XY, YZ or XZ);
+	\item slice position.
+\end{enumerate}\\
+\hline
+\end{tabular}
+
+
+\subsubsection{Local file client}
+
+This client logs data to a local file.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.loggers.client.LocalFileLogClient}\\
+\hline
+Parameters & \begin{enumerate}
+	\item path to a folder that will contain log file. If the folder does not
+	exist, it is created.
+\end{enumerate}\\
+\hline
+\end{tabular}
+
+
+\subsubsection{Stand alone client}
+
+This client sends data to log to the stand alone server.
+
+\noindent
+\begin{tabular}{|p{1.7cm}|p{9.55cm}|}
+\hline
+Class &
+\texttt{laboGrid.procChain.loggers.client.StandAloneLogClient}\\
+\hline
+Parameters & \begin{enumerate}
+	\item host name of the computer executing a stand alone server;
+	\item port the stand alone server accepts connections on.
+\end{enumerate}\\
+\hline
+\end{tabular}
+
+
+\subsection{Example}
+
+Following example implies that the following operations are executed at each
+simulation time step (we suppose a stand alone server is running on host
+``ail3'' and is accepting connections on port 50200):
+
+\begin{enumerate}
+	\item outgoing densities are extracted from lattice and sent to other
+	sublattices;
+	\item streaming is applied;
+	\item incoming densities are received and inserted into sublattice;
+	\item pressure conditions are applied (flow is parallel to $x$-axis,
+	$\rho_{in} = 1.001$ and $\rho_{out} = 0.999$);
+	\item collision operator is applied (fluid has a density of 1, no body force
+	is applied and block size is 20);
+	\item simulation thread is paused until the content of output buffers is sent;
+	\item every iteration, current iteration number is sent for logging to the
+	stand alone server;
+	\item every 3 iterations, flow state at points $(0,0,0)$, $(10,10,10)$ and
+	$(22,22,22)$ is sent to stand alone server for logging;
+	\item every 3 iterations, flow state of $xy$ slice at position $z=22$
+	is sent to stand alone server for logging.
+\end{enumerate}
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<ProcessingChain id="proc0">
+	<Operator class="laboGrid.procChain.operators.
+		NonBlockingBorderSender" parameters="" />
+	<Operator class="laboGrid.procChain.operators.InPlaceStream"
+		parameters="" />
+	<Operator class="laboGrid.procChain.operators.BorderFiller"
+		parameters="" />
+	<Operator class="laboGrid.procChain.operators.d3.q19.
+		D3Q19PressureOperator" parameters="0 1.001 0.999" />
+	<Operator class="laboGrid.procChain.operators.d3.q19.
+		D3Q19MRTCollisionOperator" parameters="1 0 0 0 20" />
+	<Operator class="laboGrid.procChain.operators.WaitBorderSent"
+		parameters="" />
+	<Logger id="iter0" rate="1"
+		loggerClass="laboGrid.procChain.loggers.IterationLogger"
+		loggerParameters=""
+		clientClass="laboGrid.procChain.loggers.client.
+StandAloneLogClient"
+		clientParameters="Resource0 50200" />
+	<Logger id="points0" rate="3"
+		loggerClass="laboGrid.procChain.loggers.d3.D3PointsLogger"
+		loggerParameters="(0,0,0) (10,10,10) (22,22,22)"
+		clientClass="laboGrid.procChain.loggers.client.
+StandAloneLogClient"
+		clientParameters="Resource0 50200" />
+	<Logger id="slices0" rate="3"
+		loggerClass="laboGrid.procChain.loggers.d3.D3SliceLogger"
+		loggerParameters="XY 22"
+		clientClass="laboGrid.procChain.loggers.client.
+StandAloneLogClient"
+		clientParameters="Resource0 50200" />
+</ProcessingChain>
+\end{Verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Middleware}
+\label{sec_conf_middle}
+
+The \verb|<LaBoGridMiddleware>| element contains parameters related to the
+middleware part of LaBoGrid. There are 3 categories of parameters:
+
+\begin{itemize}
+	\item stabilization: in order to execute simulations on a set of computers,
+	this set must be ``stable'' i.e. no computer should join or leave it --
+	the stabilizer is a component of LaBoGrid which detects the stability of the set
+	of available computers;
+	\item load balancing: parameters related to load balancing features of LaBoGrid
+	(see section~\ref{sec_arch_load});
+	\item fault tolerance: parameters related to fault tolerance features of
+	LaBoGrid (see section~\ref{sec_arch_fault}).
+\end{itemize}
+
+Following XML schema snippet describes \verb|<LaBoGridMiddleware>| element;
+child elements of \verb|<LaBoGridMiddleware>| correspond to above categories.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="LBGMiddlewareType">
+	<xs:sequence minOccurs="1" maxOccurs="1">
+		<xs:element name="Stabilizer" type="StabilizerType" />
+		<xs:element name="LoadBalancing" type="LoadBalancingType" />
+		<xs:element name="FaultTolerance" type="FaultToleranceType" />
+	</xs:sequence>
+</xs:complexType>
+\end{Verbatim}
+
+
+\subsection{Stabilization}
+
+The stabilizer is executed by the leader (see
+section~\ref{sec_arch_dimawo_model}). It signals a stable set of computers if no
+computer joined or leaved the set during a given amount of time, called
+``stabilization time-out''. The \verb|<Stabilizer>| element has a single
+attribute: the stabilization time-out. Following XML schema snippet describes
+\verb|<Stabilizer>| element.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="StabilizerType">
+	<xs:attribute name="timeout" type="xs:nonNegativeInteger" />
+</xs:complexType>
+\end{Verbatim}
+
+
+\subsection{Load balancing}
+\label{sec_conf_middle_load}
+
+LaBoGrid is able to minimize execution time by optimizing the way sublattices
+are distributed among computers (see section~\ref{sec_arch_load}). If the set
+of used computers is heterogeneous regarding computational power (number of
+operations per time unit), it must be evaluated in order to be taken into
+account when computing sublattices distribution: a ``power model'' must be built.
+
+The computational power of a computer is evaluated using benchmarks. Load
+balancing parameters include benchmarks parameters: the number of iterations of
+a benchmark and the size of the lattice. These parameters are optional if no
+power model needs to be built (e.g. when all computers have same computational
+power).
+
+Following XML schema snippet describes \verb|<LoadBalancing>| element,
+optional \verb|<Benchmark>| element describes benchmark parameters and
+\texttt{buildPowerModel} attribute enables power model construction if true;
+\verb|<Benchmark>| element must be given if \texttt{buildPowerModel} is true:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="LoadBalancingType">
+	<xs:sequence minOccurs="0" maxOccurs="1">
+		<xs:element name="Benchmark" type="BenchmarkType" />
+	</xs:sequence>
+	<xs:attribute name="buildPowerModel" type="boolean" />
+</xs:complexType>
+\end{Verbatim}
+
+Following XML schema snippet describes \verb|<Benchmark>| element,
+\texttt{iterations} attribute gives the number of iterations of benchmarks and
+\texttt{refSizes} gives the lattice sizes to use when running benchmarks, the
+sizes is a list of space-separated vectors given in the format $(x,y,z)$:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="BenchmarkType">
+	<xs:attribute name="iterations" type="xs:string"
+		use="required" />
+	<xs:attribute name="refSizes" type="xs:string" use="required" />
+</xs:complexType>
+\end{Verbatim}
+
+
+\subsection{Fault tolerance}
+\label{sec_conf_middle_fault}
+
+LaBoGrid implements a fault tolerance mechanism based on the distributed
+replication of state files containing flow's state (see
+section~\ref{sec_arch_fault}). Fault tolerance mechanism has following
+parameters:
+
+\begin{itemize}
+	\item the ``backup rate'': a backup rate of $x$ means state files are
+	produced and replicated when current iteration is divisible by $x$;
+	\item the number of replication neighbors i.e. the number of replicas
+	of state files;
+	\item the maximum size of file chunks to send;
+	\item state files content type: can be uncompressed, compressed (solid and
+	flow state are compressed) or mixed (solid is compressed, flow state is not);
+\end{itemize}
+
+Following XML schema snippet describes \verb|<FaultTolerance>| element,
+\texttt{backup\-Rate} attribute gives the backup rate, \texttt{neighborsCount}
+gives the number of replication neighbors, \texttt{chunkSize} gives maximum
+chunk size, \texttt{compressFiles} gives state files content type (raw means
+uncompressed data) and \texttt{replicationEnabled} enables fault tolerance
+mechanism if set to true:
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<xs:complexType name="FaultToleranceType">
+	<xs:attribute name="backupRate" type="xs:nonNegativeInteger"
+		use="required" />
+	<xs:attribute name="neighborsCount" type="xs:nonNegativeInteger"
+		use="required" />
+	<xs:attribute name="chunkSize" type="xs:nonNegativeInteger"
+		use="required" />
+	<xs:attribute name="compressFiles" type="StateFileContentType"
+		use="required" />
+	<xs:attribute name="replicationEnabled" type="boolean" use="required"/>
+</xs:complexType>
+
+<xs:simpleType name="StateFileContentType">
+	<xs:restriction base="xs:string">
+		<xs:enumeration value="compress"></xs:enumeration>
+		<xs:enumeration value="mixed"></xs:enumeration>
+		<xs:enumeration value="raw"></xs:enumeration>
+	</xs:restriction>
+</xs:simpleType>
+\end{Verbatim}
+
+
+\subsection{Example}
+
+Below example has following effect on LaBoGrid:
+
+\begin{itemize}
+	\item a stabilization time out of 5 seconds is used;
+	\item a power model is built using 2 benchmarks per computer: using a lattice
+	of $(22,22,22)$ and 500 time steps, and using a lattice of $(44,44,44)$ and 200
+	time steps;
+	\item fault tolerance mechanism is enabled: state files are replicated every
+	100 time steps on 1 replication neighbor per computer, uncompressed data are
+	written in state files and files are transmitted in chunks of 512 kilobytes.
+\end{itemize}
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<LaBoGridMiddleware>
+	<Stabilizer timeout="5000"/>
+	<LoadBalancing buildPowerModel="true">
+		<Benchmark
+			iterations="500 200"
+			refSizes="(22,22,22) (44,44,44)" />
+	</LoadBalancing>
+	<FaultTolerance
+		replicationEnabled="true"
+		backupRate="100"
+		chunkSize="524288"
+		compressFiles="raw"
+		neighborsCount="1" />
+</LaBoGridMiddleware>
+\end{Verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Full configuration file}
+
+Below the complete XML schema description of a configuration file whose snippets
+have been presented in previous sections.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<!-- Root element -->
+
+	<xs:element name="LaBoGridConfiguration">
+		<xs:complexType>
+			<xs:sequence minOccurs="1" maxOccurs="1">
+				<xs:element name="Experiment" type="ExperimentType" />
+			<xs:sequence minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="LBConfiguration"
+					type="LBConfType" />
+			</xs:sequence>
+			<xs:sequence minOccurs="1" maxOccurs="unbounded">
+				<xs:element name="ProcessingChain"
+					type="ProcChainType" />
+			</xs:sequence>
+			<xs:element name="LaBoGridMiddleware"
+				type="LBGMiddlewareType" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	
+	<!-- Experiment element -->
+	
+	<xs:complexType name="ExperimentType">
+		<xs:sequence minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="SimulationSequence"
+				type="SimulationSequenceType"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="SimulationSequenceType">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Simulation"
+				type="SimulationType"/>
+			<xs:sequence minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="NextSimulation"
+					type="NextSimulationType"/>
+			</xs:sequence>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="SimulationType">
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:sequence minOccurs="1" maxOccurs="1">
+				<xs:element name="Input" type="InOutType"/>
+			</xs:sequence>
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="Output" type="InOutType"/>
+			</xs:sequence>
+		</xs:sequence>
+		<xs:attribute name="startingIteration"
+			type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="iterationsCount"
+			type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="processingChain"
+			type="xs:string" use="required"/>
+		<xs:attribute name="lbConfiguration"
+			type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="NextSimulationType">
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="Input" type="InOutType"/>
+			</xs:sequence>
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="Output" type="InOutType"/>
+			</xs:sequence>
+		</xs:sequence>
+		<xs:attribute name="iterationsCount"
+			type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="processingChain"
+			type="xs:string" use="required"/>
+		<xs:attribute name="lbConfiguration"
+			type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="InOutType">
+		<xs:attribute name="clientClass" type="xs:string"
+			use="required"/>
+		<xs:attribute name="parameters" type="xs:string"
+			use="required"/>
+	</xs:complexType>
+	
+	
+	<!-- LBConfiguration element -->
+	
+	<xs:complexType name="LBConfType">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Lattice" type="LatticeType"/>
+			<xs:element name="Solid" type="SolidType"/>
+			<xs:element name="SubLattices" type="SubLatticesType"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="LatticeType">
+		<xs:attribute name="size" type="xs:string" use="required"/>
+		<xs:attribute name="class" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="SolidType">
+		<xs:attribute name="fileId" type="xs:string"
+			use="required"/>
+		<xs:attribute name="type" type="SolidFileType"
+			use="required"/>
+		<xs:attribute name="class" type="xs:string"
+			use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="SubLatticesType">
+		<xs:attribute name="minSubLatticesCount" type="xs:integer"
+			use="required"/>
+		<xs:attribute name="generatorClass" type="xs:string"
+			use="required"/>
+	</xs:complexType>
+	
+	
+	<!-- ProcessingChain element -->
+	
+	<xs:complexType name="ProcChainType">
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:group ref="ProcChainElement"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string"/>
+	</xs:complexType>
+	
+	<xs:group name="ProcChainElement">
+		<xs:choice>
+			<xs:element name="Operator" type="OperatorType"/>
+			<xs:element name="Logger" type="LoggerType"/>
+		</xs:choice>
+	</xs:group>
+	
+	<xs:complexType name="OperatorType">
+		<xs:attribute name="class" type="xs:string" use="required"/>
+		<xs:attribute name="parameters" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="LoggerType">
+		<xs:attribute name="id" type="xs:string"
+			use="required"/>
+		<xs:attribute name="rate" type="xs:nonNegativeInteger"
+			use="required"/>
+		<xs:attribute name="loggerClass" type="xs:string"
+			use="required"/>
+		<xs:attribute name="loggerParameters" type="xs:string"
+			use="required"/>
+		<xs:attribute name="clientClass" type="xs:string"
+			use="required"/>
+		<xs:attribute name="clientParameters" type="xs:string"
+			use="required"/>
+	</xs:complexType>
+	
+	
+	<!-- LaBoGridMiddleware element -->
+	
+	<xs:complexType name="LBGMiddlewareType">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Stabilizer" type="StabilizerType" />
+			<xs:element name="LoadBalancing" type="LoadBalancingType" />
+			<xs:element name="FaultTolerance" type="FaultToleranceType" />
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="StabilizerType">
+		<xs:attribute name="timeout" type="xs:nonNegativeInteger" />
+	</xs:complexType>
+	
+	<xs:complexType name="LoadBalancingType">
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:element name="Benchmark" type="BenchmarkType" />
+		</xs:sequence>
+		<xs:attribute name="buildPowerModel" type="boolean" />
+	</xs:complexType>
+	
+	<xs:complexType name="FaultToleranceType">
+		<xs:attribute name="backupRate" type="xs:nonNegativeInteger"
+			use="required" />
+		<xs:attribute name="neighborsCount" type="xs:nonNegativeInteger"
+			use="required" />
+		<xs:attribute name="chunkSize" type="xs:nonNegativeInteger"
+			use="required" />
+		<xs:attribute name="compressFiles" type="StateFileContentType"
+			use="required" />
+		<xs:attribute name="replicationEnabled" type="boolean"
+			use="required"/>
+	</xs:complexType>
+	
+	<xs:simpleType name="StateFileContentType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="compress" />
+			<xs:enumeration value="mixed" />
+			<xs:enumeration value="raw" />
+		</xs:restriction>
+	</xs:simpleType>
+
+</xs:schema>
+\end{Verbatim}
+
+
+\subsection{Example}
+
+Below the complete configuration file whose snippets have been presented in
+previous sections. We suppose that the XML schema file
+\texttt{labogrid-conf-schema.xsd} is located in the same folder as the
+configuration file.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+<?xml version="1.0" encoding="UTF-8"?>
+<LaBoGridConfiguration
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="labogrid-conf-schema.xsd">
+
+	<Experiment>
+		<SimulationSequence>
+			<Simulation
+				iterationsCount="10"
+				lbConfiguration="conf0"
+				processingChain="proc0"
+				startingIteration="0">
+				<Input
+					clientClass="laboGrid.ioClients.standalone.
+	StandAloneInputClient"
+					parameters="src/main/sim-test/
+						Resource0 50200" />
+			</Simulation>
+			<NextSimulation
+				iterationsCount="10" lbConfiguration="conf0"
+				processingChain="proc1">
+				<Output
+					clientClass="laboGrid.ioClients.standalone.
+	StandAloneOutputClient"
+					parameters="524288 src/main/sim-test/out/
+						Resource0 50200" />
+			</NextSimulation>
+		</SimulationSequence>
+		<SimulationSequence>
+			<Simulation
+				iterationsCount="80"
+				lbConfiguration="conf0"
+				processingChain="proc1"
+				startingIteration="20">
+				<Input
+					clientClass="laboGrid.ioClients.standalone.
+	StandAloneInputClient"
+					parameters="src/main/sim-test/
+						Resource0 50200" />
+				<Output
+					clientClass="laboGrid.ioClients.standalone.
+	StandAloneOutputClient"
+					parameters="524288 src/main/sim-test/out/
+						Resource0 50200" />
+			</Simulation>
+		</SimulationSequence>
+	</Experiment>
+	
+	<LBConfiguration id="conf0">
+		<Lattice class="laboGrid.lb.lattice.d3.q19.
+D3Q19DefaultLattice" size="(44,44,44)" />
+		<Solid class="laboGrid.lb.solid.d3.D3SolidBitmap"
+			fileId="MU44.mat.gz" type="compressed-ascii" />
+		<SubLattices generatorClass="laboGrid.graphs.model.d3.
+D3CuboidsGenerator" minSubLatticesCount="9" />
+	</LBConfiguration>
+	
+	<ProcessingChain id="proc0">
+		<Operator class="laboGrid.procChain.operators.
+			NonBlockingBorderSender" parameters="" />
+		<Operator class="laboGrid.procChain.operators.InPlaceStream"
+			parameters="" />
+		<Operator class="laboGrid.procChain.operators.BorderFiller"
+			parameters="" />
+		<Operator class="laboGrid.procChain.operators.d3.q19.
+			D3Q19PressureOperator" parameters="0 1.001 0.999" />
+		<Operator class="laboGrid.procChain.operators.d3.q19.
+			D3Q19MRTCollisionOperator" parameters="1 0 0 0 20" />
+		<Operator class="laboGrid.procChain.operators.WaitBorderSent"
+			parameters="" />
+		<Logger id="iter0" rate="1"
+			loggerClass="laboGrid.procChain.loggers.IterationLogger"
+			loggerParameters=""
+			clientClass="laboGrid.procChain.loggers.client.
+StandAloneLogClient"
+			clientParameters="Resource0 50200" />
+		<Logger id="points0" rate="3"
+			loggerClass="laboGrid.procChain.loggers.d3.D3PointsLogger"
+			loggerParameters="(0,0,0) (10,10,10) (22,22,22)"
+			clientClass="laboGrid.procChain.loggers.client.
+StandAloneLogClient"
+			clientParameters="Resource0 50200" />
+		<Logger id="slices0" rate="3"
+			loggerClass="laboGrid.procChain.loggers.d3.D3SliceLogger"
+			loggerParameters="XY 22"
+			clientClass="laboGrid.procChain.loggers.client.
+StandAloneLogClient"
+			clientParameters="Resource0 50200" />
+	</ProcessingChain>
+
+	<LaBoGridMiddleware>
+		<Stabilizer timeout="5000"/>
+		<LoadBalancing buildPowerModel="true">
+			<Benchmark
+				iterations="500 200"
+				refSizes="(22,22,22) (44,44,44)" />
+		</LoadBalancing>
+		<FaultTolerance
+			replicationEnabled="true"
+			backupRate="100"
+			chunkSize="524288"
+			compressFiles="raw"
+			neighborsCount="1" />
+	</LaBoGridMiddleware>
+
+</LaBoGridConfiguration>
+\end{Verbatim}

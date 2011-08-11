@@ -1,0 +1,13 @@
+/target/
+
+# Java
+*.class
+
+# LaTeX
+*.pdf
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc

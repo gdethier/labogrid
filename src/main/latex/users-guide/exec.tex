@@ -1,0 +1,129 @@
+\chapter{Execution}
+\label{sec_exec}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Environment}
+
+LaBoGrid may be deployed in a variety of execution environments (desktop
+computers, clusters, supercomputers, etc.). The only rule is: 1 worker per
+computer, even if the computer has several cores (the worker will detect and
+use them). The main reason for this is that the resources waste caused by the
+execution of several JVMs on the same computer is avoided.
+
+Therefore:
+\begin{itemize}
+	\item Executing LaBoGrid on a cluster implies that 1 JVM executing a worker
+	is instantiated per computer.
+	\item Executing LaBoGrid on a multi- or single-core computer implies the
+	execution of 1 JVM executing a worker on this computer.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Launchers}
+
+DiMaWo (see section~\ref{sec_arch_dimawo}) provides helper classes that can be
+used to execute workers (i.e. classes providing a static ``main'' method).
+These classes are called ``launchers''.
+
+DiMaWo provides 2 worker launchers useful in the context of LaBoGrid: a
+bootstrap worker launcher (first executed worker) and a normal worker launcher
+(for all subsequent workers). These 2 launchers have respectively following
+class names:
+
+\begin{center}
+\texttt{dimawo.exec.GenericBootstrapLauncher}\\
+\texttt{dimawo.exec.GenericLauncher}
+\end{center}
+
+They execute a particular application by instantiating specific
+classes implementing workers and master (see
+section~\ref{sec_arch_dimawo_apps}) using a factory class provided by the user.
+This factory may take parameters.
+
+
+\subsection{Simulations}
+
+LaBoGrid provides following factory class for the execution of flow simulations: 
+%
+\begin{center}
+\texttt{laboGrid.LaBoGridFactory}\\
+\end{center}
+%
+The factory takes 2 arguments:
+%
+\begin{enumerate}
+	\item a configuration file (see chapter~\ref{sec_conf}),
+	\item (optional) a power model file i.e. a file containing the result of
+	previous benchmarks for a list of resources; the content of this file may be
+	used by LaBoGrid when a power model is required for load balancing (see
+	section~\ref{sec_conf_middle_load}).
+\end{enumerate}
+
+The bootstrap launcher requires at least 6 arguments:
+%
+\begin{enumerate}
+	\item factory class name,
+	\item port number the worker accepts connections on,
+	\item working directory (the directory that will contain temporary and
+	log files),
+	\item maximum number of workers managed by a master-worker
+	(master-worker included, see section~\ref{sec_arch_dimawo_model}),
+	\item number of master-worker children per master-worker (see
+	section~\ref{sec_arch_dimawo_model}),
+	\item verbosity level (messages produced by agents with a verbosity level
+	lower than given level are not printed, see
+	section~\ref{sec_arch_dimawo_agents}),
+\end{enumerate}
+%
+Following arguments are passed to given factory.
+
+The normal launcher requires at least 8 arguments:
+%
+\begin{enumerate}
+	\item factory class name,
+	\item port number the worker accepts connections on,
+	\item working directory (the directory that will contain temporary and
+	log files),
+	\item host name of a computer already executing a worker (generally the
+	computer executing bootstrap worker),
+	\item port number the already-running worker is accepting connections on,
+	\item maximum number of workers managed by a master-worker
+	(master-worker included, see section~\ref{sec_arch_dimawo_model}),
+	\item number of master-worker children per master-worker (see
+	section~\ref{sec_arch_dimawo_model}),
+	\item verbosity level (messages with a verbosity level lower than given level
+	are not printed),
+\end{enumerate}
+%
+Following arguments are passed to given factory.
+
+
+\subsection{Benchmarks}
+
+Second optional argument of LaBoGrid's factory is a power model file. If it
+describes well the computational power of the computers that execute LaBoGrid,
+there is no need to execute benchmarks again. This is interesting when
+simulations are mostly executed on the same set of computers or subsets of the
+same set of computers: in this case, benchmarks are executed once for all and
+their result re-used several times.
+
+LaBoGrid provides a DiMaWo application which executes all the benchmarks
+nee\-ded regarding a given configuration file on the computers the application
+is executed by. Its factory class is:
+%
+\begin{center}
+\texttt{laboGrid.ClusterBenchmarkFactory}
+\end{center}
+%
+It takes 3 arguments:
+\begin{enumerate}
+	\item a LaBoGrid configuration file,
+	\item the number of computers executing the application (i.e. the number
+	of workers),
+	\item an output file name (the name of the power model file to produce).
+\end{enumerate}
+
+Note that the content of a power model file is in a human readable format that
+may be edited by hand.
+

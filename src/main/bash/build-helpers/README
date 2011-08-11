@@ -1,0 +1,416 @@
+================================================================================
+                                 README
+                                   -
+                                LaBoGrid
+             A distributed Lattice Boltzmann-based simulation tool
+================================================================================
+
+Summary
+1. Introduction
+2. Directory's content
+3. Building sources
+4. Quick start
+5. Troubleshooting
+
+================================================================================
+1. Introduction
+
+LaBoGrid is a fluid flow simulation tool based on Lattice Boltzmann (LB) methods
+and oriented towards experimentation (simulation capabilities are easily
+extendable). It is especially focused on the efficient execution in
+heterogeneous (regarding installed software, architecture, computational power,
+etc.) and unreliable distributed environments. However, LaBoGrid can be
+efficiently be executed in more common environments such as homogeneous clusters
+or simply desktop computers.
+
+This file is about how LaBoGrid can be built and then executed on a single
+computer or a cluster. By default, the directory containing this file should
+already contain subdirectories "bin", "doc" and "src". In this case, LaBoGrid
+is probably ready to be used and may not be built.
+
+Users only searching for a quick start may directly jump to Section 4.
+
+More details about LaBoGrid's usage are available in user's guide located in
+"doc" folder. If the file is not available, LaBoGrid's documentation must first
+be built and installed (see Section 2.2.8).
+
+LaBoGrid is build on top of DiMaWo framework. Both tools are written in Java
+and managed by Maven, a software project management and comprehension tool. More
+details about Maven are available at http://maven.apache.org/.
+
+Maven should be installed on the computer if LaBoGrid and DiMaWo sources are to
+be build. On a Linux distribution, installation may simply be done using a
+package manager. For example, in Ubuntu, Maven is installed by executing
+following command:
+
+                         sudo apt-get install maven2
+
+LaBoGrid was initially developed at University of Liege, Belgium, in the frame
+of a collaboration between Algorithmics and Chemical engineering laboratories.
+It is based on research described in following thesises:
+
+Djomice A. Beugre, Etude de l'ecoulement d'un fluide dans
+	des geometries complexes rencontrees en Genie Chimique par la methode de
+	Boltzmann sur reseau (french), Ph.D. thesis, University of Liege, 2010.
+
+Gerard Dethier, Design and Implementation of a Distributed Lattice
+	Boltzmann-based Fluid Flow Simulation Tool, Ph.D. thesis, University of
+	Liege, 2011.
+	http://hdl.handle.net/2268/81435
+
+--------------------------------------------------------------------------------
+2. Directory's content
+
+In this section, the content of this directory is explained. Provided script
+files are described.
+
+This directory contains 4 sub-directory ("bin", "doc", "samples" and "src") as
+well as 3 files ("make.sh", "README" and "versions.sh").
+
+--------------------------------------------------------------------------------
+2.1 make.sh
+
+This script can be used in order to build a new version of LaBoGrid using source
+files available in "src" folder (see Section 2.6). "make.sh" must be
+called with 1 argument: an action i.e. the type of operation to execute.
+
+Available actions are: unpack, build-bin, build-doc, install-bin,
+install-doc, clean, build-install-bin, build-install-doc and build-install-all.
+These actions are described in more details in following subsections.
+
+For a quick description on how sources can be build and installed, see
+Section 3.
+
+2.1.1 unpack
+
+Source code may be released as compressed archives (2 archives, see
+Section 2.6). Before it can be compiled, source files must be extracted from
+archive. This action simply extracts all source files from archives.
+
+2.1.2 build-bin
+
+This action builds sources. It requires Maven to be installed on computer.
+
+2.1.3 build-doc
+
+This action builds "javadoc" documentation (i.e. source code documentation
+in HTML format) and user's guide (PDF file). It requires Maven to be
+installed on computer.
+
+Javadoc is a tool for generating API documentation in HTML format from doc
+comments in source code (more details are available at
+http://www.oracle.com/technetwork/java/javase/documentation/index-jsp-135444.html).
+
+2.1.4 install-bin
+
+This action installs binaries resulting from source building (see
+Section 2.1.2) into "bin" directory (see Section 2.3).
+
+2.1.5 install-doc
+
+This action installs source code documentation (see Section 2.1.3) and user's
+guide into "doc" directory (see Section 2.4).
+
+2.1.6 clean
+
+Cleans source code directories (see Section 2.6) i.e. deletes all generated
+binaries and documentation (see Sections 2.1.2 and 2.1.3).
+
+2.1.7 build-install-bin
+
+Executes build-bin and install-bin actions in sequence (see Sections 2.1.2 and
+2.1.4).
+
+2.1.8 build-install-doc
+
+Executes build-doc and install-doc actions in sequence (see Sections 2.1.3 and
+2.1.5).
+
+2.1.9 build-install-all
+
+Equivalent to the execution of build-install-bin and build-install-doc actions
+(see Sections 2.1.7 and 2.1.8).
+
+--------------------------------------------------------------------------------
+2.2 versions.sh
+
+This file contains information about the version of source code to build. This
+information consists of the version numbers of DiMaWo and LaBoGrid. These
+version numbers are used to find sources in "src" directory
+(see Section 2.6) during build process.
+
+--------------------------------------------------------------------------------
+2.3 bin
+
+This directory contains the result of "make.sh"'s install-bin action. This
+includes scripts that help for the execution of LaBoGrid simulations and
+a binary file including all required dependencies. "bin" contains all required
+data in order to use LaBoGrid. It is therefore independent and can safely be
+copied or moved at another location.
+
+Two examples of usage of the content of this directory are given in Section 4.
+
+More details are available in "bin"'s README file.
+
+--------------------------------------------------------------------------------
+2.4 doc
+
+This directory contains the documentation related to LaBoGrid. It is essentially
+composed of a user's guide (PDF file) which explains the way LaBoGrid can be
+used and extended in order to execute advanced flow simulations.
+
+--------------------------------------------------------------------------------
+2.5 samples
+
+This directory contains sample input files that can be used in order to execute
+LaBoGrid simulations. See Section 4 for more details.
+
+--------------------------------------------------------------------------------
+2.6 src
+
+This directory initially contains 2 archives containing the sources of
+DiMaWo and LaBoGrid. These 2 archives have a name that is function of version
+number. For example, let XXX be the version number of DiMaWo and YYY be
+the version number of LaBoGrid. "src" directory then initially contains 2 files:
+"dimawo-XXX-src.tar.gz" and "labogrid-YYY-src.tar.gz".
+
+In order to build the content of these archives using "make.sh" script (see
+Section 2.2), "versions.sh" file must contain the right version number regarding
+archive names.
+
+Note that, once the files of the archives are extracted, they can be modified
+and the modification installed into "bin" directory using build-install-bin
+action of "make.sh" (see Section 2.2). This allows to easily "test" alterations
+of source code. However, for deep modifications or extensions, the use
+of a more appropriate environment may be required.
+
+When modifying sources, the developer should be aware of the fact that
+modified source code may be overwritten when executing the "unpack" action
+of "make.sh".
+
+================================================================================
+3. Building sources
+
+If the base directory (i.e. the directory containing this file) already contains
+a "bin" directory. Source may not have to be built. Otherwise, if "src" was not
+altered, "bin" directory may be built from sources simply by executing following
+commands:
+
+                          ./make.sh unpack
+                          ./make.sh build-install-bin
+
+Last command requires Maven to be installed on the computer (see Section 1
+for more details). If a new version of source archives is available, it may be
+copied into "src" directory and "version.sh" file updated (see Section 2.6).
+
+================================================================================
+4. Quick start
+
+In this section, we show how the same simulation can be executed in 2 different
+environments (a single computer and a cluster). The simulation consists of a
+Lattice Boltzmann flow using a 3D lattice of size (44,44,44). Only 10 iterations
+are executed in order to keep execution time low. This simulation is described
+in 2 configuration files available in "samples" directory. These 2 files only
+differ regarding the location of the associated XML schema file and
+the way simulation input files and output files are respectively provided and
+retrieved. "samples" also contains a solid file (MU44.mat.gz) representing the
+structure the fluid flows through.
+
+In the two cases, the state of the flow is retrieved at the end of the
+simulation. In order to be post-processed, output files may be converted into
+readable text files. The conversion process is described in last sub-section.
+
+--------------------------------------------------------------------------------
+4.1 Running sample simulation locally
+
+a. Open a terminal and change directory to base directory.
+
+b. Copy sample LaBoGrid configuration file into "bin" directory with
+following command:
+
+                    cp samples/conf-local.xml bin/conf.xml
+
+The configuration file is renamed in order to comply with default script
+parameters.
+
+c. Change current directory to "bin".
+
+d. Execute the simulation described in conf.xml file with LaBoGrid by executing
+following command:
+
+                         ./runLocalSim.sh conf.xml
+
+e. If all went well, 2 additional directories were created: "out" and
+"work_dir". "work_dir" contains log files about the execution of the simulation.
+More details about these log files can found in user's guide. "out" contains
+the result of the simulation. This result can be used to resume the simulation
+or to be post-processed. In latter case, output should be converted into a
+readable format (see Section 4.3).
+
+--------------------------------------------------------------------------------
+4.2 Running sample simulation on a cluster
+
+4.2.1 Pre-requisites
+
+The deployment of LaBoGrid in a distributed environment like a cluster is more
+difficult than simply executing it on a single computer. In this section, some
+pre-requisites are briefly adressed.
+
+Processes executing a LaBoGrid simualtion are called "workers".
+There is one worker per computer. The first worker to be executed is called
+"bootstrap worker".
+
+In order to provide input files to/retrieve output files from workers, a
+"stand alone server" process is executed on a computer.
+Input files must be available on this computer and output
+files are available on it after simulation's execution.
+
+The computers that will execute the workers must be accessible through SSH
+and firewalls configured such as the same TCP port is open for LaBoGrid on
+each computer. It is advised to use an SSH-agent to handle the numerous
+connections performed for the execution of LaBoGrid.
+
+In the following, we consider that deployment scripts are executed from a
+computer with host name "ail3". The stand alone server is also executed on
+this computer and listens to port 50200. Workers are deployed on 4 computers:
+"candi01", "candi02", "candi03" and "candi04". "candi01" will execute the
+bootstrap worker. TCP port 50200 is open on each of these 4 computers.
+
+4.2.2 The simulation
+
+a. Open a terminal and change directory to base directory.
+
+b. Copy sample LaBoGrid configuration file into "bin" directory with
+following command:
+
+                    cp samples/conf-distributed.xml bin/conf.xml
+
+The configuration file is renamed in order to comply with default script
+parameters.
+
+c. Change current directory to "bin".
+
+d. Edit "config-cluster.sh" file and update variables if necessary. It is likely
+that you will have to update the computer executing bootstrap worker
+(BOOTSTRAP_COMP) and the list of computers running the other workers
+(CLUSTER). Note that computers may be identified only by their host name or by
+a pair (user name, host name) using following notation:
+
+                                     user@host
+
+where user is the user name to use for connexion and host the host name.
+
+e. Edit "config-labogrid.sh" file and update variables if necessary. You may
+have to update the host name of the computer running the stand alone server
+(SA_HOST) and the TCP port the server is listening to (SA_PORT), as well as
+the TCP port LaBoGrid workers can listen to (WORK_PORT). Be sure that all given
+ports are open on associated computers.
+
+f. Open another terminal with the same current directory.
+
+g. In the new terminal, run the stand alone server using following command:
+
+                     ./startStandAloneServer.sh ail3 50200 out/
+
+"ail3" is the host name of the computer running the stand alone server and
+50200 the TCP port the server is listening to. Update these values in function
+of what you wrote in "config-labogrid.sh". "out" is the name of the directory
+where output files will be stored; this value can remain unchanged.
+
+h. Return to other terminal and start an SSH agent (in order to avoid to have to
+type password on every SSH connection). If you do not know how to do this,
+search for "ssh agent" on the Internet, tutorials are available aplenty.
+
+i. Install LaBoGrid and configuration files onto cluster computers by executing
+following command:
+
+                                  ./installAndCopy.sh
+
+j. Start all workers and wait the end of the simulation by executing following
+command:
+
+                               ./startWorkersAndWait.sh
+
+k. If all went well, 2 additional directories were created: "out" and
+"ssh-log". "ssh-log" contains log files about the execution of SSH processes.
+"out" contains the result of the simulation. This result can be used to resume
+the simulation or to be post-processed. In latter case, output should be
+converted into a readable format (see Section 4.3).
+
+l. Stop stand alone server by interrupting the process running in second
+terminal (use for example Ctrl-C shortkey).
+
+m. Clean cluster computers i.e. remove LaBoGrid, configuration files and log
+files:
+
+                              ./killClearAndUninstall.sh
+
+Warning about no java processes killed can safely be ignored. It is the expected
+result of above command because workers end their execution on their own.
+
+--------------------------------------------------------------------------------
+4.3 Converting output of simulations
+
+In both examples above, the result of the simulation is stored into "out"
+sub-directory of "bin" directory. The output files consist of files with "state"
+extension, containing the state of the flow, and a "mGraph.dat" file describing
+the way simulation's state is distributed among "state" files.
+
+The output files are generally not directly usable by another tool than
+LaBoGrid. Therefore, the way to convert these files into a more readable format
+is described in this section.
+
+a. Open a terminal and change directory to "bin" directory.
+
+b. Execute following command:
+
+                          ./convertOutput.sh out/ res XY 10
+
+First argument is the directory containing the output files to convert. Second
+argument is the prefix of the directory that will contain converted data.
+Third argument specifies that XY slices of the lattice are produced per file
+(other possible values are XZ and YZ) resulting from the conversion. Last
+argument gives the iteration reached by the simulation (state files are named
+using following scheme: x_y.state where x is a natural number and y the
+last iteration reached by the simulation).
+
+c. If all went well, an additional sub-directory was created: "res_10". This
+directory contains one file per slice of the lattice. For more details about
+produced files, see user's guide.
+
+================================================================================
+5. Troubleshooting
+
+For some reasons, problems may arise while executing LaBoGrid. While local
+executions, like the one described in Section 4.1, should not cause a lot of
+trouble, the distributed case of Section 4.2 is far more complex and
+error-prone.
+
+Most problems encountered come from an improper configuration of firewalls on
+cluster computers and stand alone server computer. Be sure that all required
+TCP ports are open on each computer.
+
+Another typical problem (that may arise with local simulations too) is a "wrong"
+configuration file making references to unknown classes or that cannot be
+validated by the associated schema. In this case, check your configuration file.
+
+The validation problem can come from the fact that the schema file is not
+accessible. Be sure that the configuration file
+does refer to it in the right way, either using an absolute path (which can be
+a URL) or a relative path; in this case, the path must be relative to the
+location of the configuration file. In the context of a distributed simulation,
+the schema file is always copied in the same directory as configuration file.
+
+In local case, above problems cause error messages to be displayed in the
+console. In distributed case, they can be diagnosed using log files containing
+the output of SSH processes executing the workers. These files are available
+by default in "ssh-log" sub-directory of "bin".
+
+For more subtle problems, finer grained log information may be required.
+In local case, the logs in "work_dir" subdirectory of "bin" may contain
+interesting messages. In particular, the file "*_DecentralLBController.log"
+should be read. In distributed case, these log files are available on computers
+executing the workers. "downloadLogs.sh" script downloads them locally in order
+to ease access to them.
+
+

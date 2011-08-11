@@ -1,0 +1,9 @@
+LaBoGrid is both a Java library and an executable software. Source code is
+managed with Maven (see http://maven.apache.org/). It includes Java classes,
+bash scripts (used to execute LaBoGrid) and LaTeX sources of the user's guide.
+LaBoGrid's distribution archives and JAR file can be produced by calling
+'mvn package'. There are 2 distribution archives: a "sources" archive
+(containing whole maven project), a "binaries" archive (allowing users to
+directly use LaBoGrid -- in addition to the software, this archive contains
+samples and the user's guide). LaBoGrid's API documentation is generated using
+'mvn javadoc:javadoc'.

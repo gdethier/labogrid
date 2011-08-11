@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  LaBoGrid
+  %%
+  Copyright (C) 2011 University of Liege
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the 
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public 
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>Welcome!</title>
+    <author email="g.dethier@gmail.com">Gérard Dethier</author>
+  </properties>
+
+  <body>
+
+	<section name="Introduction">
+		
+		<p>LaBoGrid is a fluid flow simulation tool based on Lattice Boltzmann
+		(LB) methods and oriented towards experimentation (simulation
+		capabilities are easily extendable). It is especially focused on the
+		efficient execution in heterogeneous (regarding installed software,
+		architecture, computational power, etc.) and unreliable distributed
+		environments. However, LaBoGrid can efficiently be executed in more
+		common environments such as homogeneous clusters or simply desktop
+		computers.</p>
+		
+		<p>LaBoGrid is build on top of <a href="http://www.montefiore.ulg.ac.be/~dethier/dimawo/">DiMaWo</a> framework. LaBoGrid was initially
+		developed at University of Liege, Belgium, in the frame of a
+		collaboration between Algorithmics (now defunct) and <a href="http://www.chimapp.ulg.ac.be/">Chemical
+		engineering</a> laboratories. It is based on research described in
+		following thesises:</p>
+
+		<ul>
+		<li>Djomice A. Beugre, Etude de l'ecoulement d'un fluide dans
+		des geometries complexes rencontrees en Genie Chimique par la methode
+		de Boltzmann sur reseau (french), Ph.D. thesis, University of Liege,
+		2010. <a href="http://bictel.ulg.ac.be/ETD-db/collection/available/ULgetd-11292010-100906/">link</a></li>
+
+
+		<li>Gerard Dethier, Design and Implementation of a Distributed Lattice
+		Boltzmann-based Fluid Flow Simulation Tool, Ph.D. thesis, University
+		of Liege, 2011.	<a href="http://hdl.handle.net/2268/81435">link</a></li>
+		</ul>
+	</section>
+
+  </body>
+
+</document>

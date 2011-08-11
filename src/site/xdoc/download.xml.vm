@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="http://maven.apache.org/XDOC/2.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/XDOC/2.0 http://maven.apache.org/xsd/xdoc-2.0.xsd">
+
+  <properties>
+    <title>LaBoGrid's Downloads</title>
+    <author email="g.dethier@gmail.com">Gérard Dethier</author>
+  </properties>
+
+  <body>
+	<section name="Downloads">
+
+	<subsection name="Distributions">
+	<p>LaBoGrid is distributed in 2 forms: a binary distribution and a
+	source distribution.</p>
+
+	<ul>
+	<li>The binary distribution provides a LaBoGrid system ready to be used
+	and includes documentation and samples files.</li>
+	
+	<li>The source distribution provides LaBoGrid's complete source code.</li>
+	</ul>
+	</subsection>
+
+	<subsection name="Files">
+	<p>Current version: ${project.version}</p>
+
+	<ul>
+		<li><a href="dist/labogrid-${project.version}-bin.tar.gz">
+		Binary distribution (tar.gz)</a></li>
+		<li><a href="dist/labogrid-${project.version}-src.tar.gz">
+		Source code (tar.gz)</a></li>
+	</ul>
+	</subsection>
+
+	</section>
+  </body>
+
+</document>

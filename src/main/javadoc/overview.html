@@ -1,0 +1,96 @@
+<!--
+  #%L
+  LaBoGrid
+  %%
+  Copyright (C) 2011 University of Liege
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as
+  published by the Free Software Foundation, either version 3 of the 
+  License, or (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU General Public 
+  License along with this program.  If not, see
+  <http://www.gnu.org/licenses/gpl-3.0.html>.
+  #L%
+  -->
+<html>
+<body>
+LaBoGrid is a tool that allows to execute fluid flow simulations based on
+Lattice Boltzmann (LB) methods in a distributed way.
+<p>
+LaBoGrid is the result
+of a collaboration between the <a href="http://www.montefiore.ulg.ac.be/">
+Montefiore Institut</a> and the
+<a href="http://www.chimapp.ulg.ac.be/fichiers/LGC/LGC_presenta.html">
+Chemical Engineering Laboratory</a> of University of Liege. It is based on
+work described in the PhD thesises of Djomice A. Beugre and Gerard Dethier:
+</p>
+
+<ul>
+	<li>Djomice A. Beugre, <i>Etude de l'ecoulement d'un fluide dans
+	des geometries complexes rencontrees en Genie Chimique par la methode de
+	Boltzmann sur reseau</i>, 2010.
+	<li>Gerard Dethier, <i>Design and Implementation of a Distributed Lattice
+	Boltzmann-based Fluid Flow Simulation Tool</i>, 2011.
+</ul>
+
+<p>A deep understanding of the code presented in this documentation is
+hard to reach if the 2 above thesises have not been read and
+well understood.</p>
+
+<p>The thesis of Djomice Beugre describes the theory related to the LB 
+methods, in particular the simulation of 3D fluid flows using D3Q19 lattices
+and various collision operators.
+LB methods are implemented by classes of package {@link
+be.ulg.montefiore.laboGrid.lb}.</p>
+
+<p>Gerard Dethier's work addresses the efficient and yet portable implementation
+of LB methods in a distributed environment. In particular, Dynamic
+Heterogeneous Clusters (DHCs) are targeted. These clusters are made of
+computers that may not share same architecture, computational power, etc.
+In addition, these computers may not be reliable. LaBoGrid is therefore
+composed of a "middleware" part (in addition to the "simulation" part) handling
+problems like load-balancing, fault-tolerance, etc.</p>
+
+<p>LaBoGrid's middleware is based on a Master/Worker architecture.
+However, this part has been implemented in 2 different ways:
+first in a fully centralized way then in a moslty decentralized way.
+The reasons for this second implementation is better scalability
+(almost suppressed bottleneck) and enhanced robustness (no more
+single point of failure). These two implementations are based on the
+DiMaWo framework (developed by Gerard Dethier in the context of his
+PhD thesis). However, only the second one uses the full potential of the DiMaWo
+framework.</p>
+
+<p>DiMaWo framework eases the development of distributed applications based
+on the Master/Worker architecture. The framework provides services
+(broadcasting, leader election, etc.) that are implemented in a mostly
+decentralized way. These services are common to many distributed applications.</p>
+
+<p>In order to write a DiMaWo application, a developper must subclass
+the ControllerAgent class (implementing the leader) and the Task class
+(implementing a worker). In addition, the developper
+should provide a class implementing the TaskFactory interface (used
+by core DiMaWo components). LaBoGrid provides 3 such factories:
+{@link be.ulg.montefiore.laboGrid.CentralLBTaskFactory CentralLBTaskFactory},
+{@link be.ulg.montefiore.laboGrid.CentralLBTaskFactory DecentralLBTaskFactory} and
+{@link be.ulg.montefiore.laboGrid.CentralLBTaskFactory NicFactory}.
+The 2 first factories provide respectively centralized and
+mostly decentralized implementation of LaBoGrid. The last is adapted
+to <a href="http://www.ulg.ac.be/cms/c_228508/le-serveur-de-calcul-parallele-clustervision-nic3">
+University of Liege's supercomputer NIC3</a>.</p>
+
+<p>The DiMaWo framework provides <i>launchers</i> that can be used
+to execute a "process" of the distributed application. These launchers
+take a TaskFactory class name as argument and use reflection to instantiate
+the referenced TaskFactory. One of LaBoGrid's 3 implementations is therefore
+easy to deploy: just provide one of the factories to a launcher.</p>
+
+</body>
+</html>

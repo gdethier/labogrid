@@ -1,0 +1,291 @@
+================================================================================
+                                 README
+                                   -
+                           LaBoGrid ${project.version}
+             A distributed Lattice Boltzmann-based simulation tool
+                             (Binary distribution)
+================================================================================
+
+Summary
+1. Introduction
+2. Directory's content
+3. Quick start
+4. Troubleshooting
+
+================================================================================
+1. Introduction
+
+LaBoGrid is a fluid flow simulation tool based on Lattice Boltzmann (LB) methods
+and oriented towards experimentation (simulation capabilities are easily
+extendable). It is especially focused on the efficient execution in
+heterogeneous (regarding installed software, architecture, computational power,
+etc.) and unreliable distributed environments. However, LaBoGrid can
+efficiently be executed in more common environments such as homogeneous clusters
+or simply desktop computers.
+
+This file is about how LaBoGrid can be executed on a single
+computer or a cluster.
+
+Users only searching for a quick start may directly jump to Section 3.
+
+More details about LaBoGrid's usage are available in user's guide located in
+"doc" folder.
+
+LaBoGrid is build on top of DiMaWo framework. LaBoGrid was initially developed
+at University of Liege, Belgium, in the frame of a collaboration between
+Algorithmics and Chemical engineering laboratories. It is based on research
+described in following thesises:
+
+Djomice A. Beugre, Etude de l'ecoulement d'un fluide dans
+	des geometries complexes rencontrees en Genie Chimique par la methode de
+	Boltzmann sur reseau (french), Ph.D. thesis, University of Liege, 2010.
+
+Gerard Dethier, Design and Implementation of a Distributed Lattice
+	Boltzmann-based Fluid Flow Simulation Tool, Ph.D. thesis, University of
+	Liege, 2011.
+	http://hdl.handle.net/2268/81435
+
+================================================================================
+2. Directory's content
+
+In this section, the content of this directory is explained. Provided script
+files are described.
+
+This directory contains 3 sub-directory ("bin", "doc" and "samples") as
+well as 1 file: this "read me".
+
+--------------------------------------------------------------------------------
+2.3 bin
+
+This directory contains scripts that help for the execution of LaBoGrid
+simulations and LaBoGrid's "binaries".
+"bin" contains all required data in order to use LaBoGrid. It is therefore
+independent and can safely be copied or moved at another location.
+
+Two examples of usage of the content of this directory are given in Section 3.
+
+More details are available in "bin"'s README file.
+
+--------------------------------------------------------------------------------
+2.4 doc
+
+This directory contains the  user's guide (PDF file) which explains the way
+LaBoGrid can be used and extended in order to execute advanced flow simulations.
+
+--------------------------------------------------------------------------------
+2.5 samples
+
+This directory contains sample input files that can be used in order to execute
+LaBoGrid simulations. See Section 3 for more details.
+
+================================================================================
+3. Quick start
+
+In this section, we show how the same simulation can be executed in 2 different
+environments (a single computer and a cluster). The simulation consists of a
+Lattice Boltzmann flow using a 3D lattice of size (44,44,44). Only 10 iterations
+are executed in order to keep execution time low. This simulation is described
+in 2 configuration files available in "samples" directory. These 2 files only
+differ regarding the location of the associated XML schema file and
+the way simulation input files and output files are respectively provided and
+retrieved. "samples" also contains a solid file (MU44.mat.gz) representing the
+structure the fluid flows through.
+
+In the two cases, the state of the flow is retrieved at the end of the
+simulation. In order to be post-processed, output files may be converted into
+readable text files. The conversion process is described in last sub-section.
+
+--------------------------------------------------------------------------------
+3.1 Running sample simulation locally
+
+a. Open a terminal and change directory to base directory.
+
+b. Copy sample LaBoGrid configuration file into "bin" directory with
+following command:
+
+                    cp samples/conf-local.xml bin/conf.xml
+
+The configuration file is renamed in order to comply with default script
+parameters.
+
+c. Change current directory to "bin".
+
+d. Execute the simulation described in conf.xml file with LaBoGrid by executing
+following command:
+
+                         ./runLocalSim.sh conf.xml
+
+e. If all went well, 2 additional directories were created: "out" and
+"work_dir". "work_dir" contains log files about the execution of the simulation.
+More details about these log files can found in user's guide. "out" contains
+the result of the simulation. This result can be used to resume the simulation
+or to be post-processed. In latter case, output should be converted into a
+readable format (see Section 3.3).
+
+--------------------------------------------------------------------------------
+3.2 Running sample simulation on a cluster
+
+3.2.1 Pre-requisites
+
+The deployment of LaBoGrid in a distributed environment like a cluster is more
+difficult than simply executing it on a single computer. In this section, some
+pre-requisites are briefly adressed.
+
+Processes executing a LaBoGrid simualtion are called "workers".
+There is one worker per computer. The first worker to be executed is called
+"bootstrap worker".
+
+In order to provide input files to/retrieve output files from workers, a
+"stand alone server" process is executed on a computer.
+Input files must be available on this computer and output
+files are available on it after simulation's execution.
+
+The computers that will execute the workers must be accessible through SSH
+and firewalls configured such as the same TCP port is open for LaBoGrid on
+each computer. It is advised to use an SSH-agent to handle the numerous
+connections performed for the execution of LaBoGrid.
+
+In the following, we consider that deployment scripts are executed from a
+computer with host name "ail3". The stand alone server is also executed on
+this computer and listens to port 50200. Workers are deployed on 4 computers:
+"candi01", "candi02", "candi03" and "candi04". "candi01" will execute the
+bootstrap worker. TCP port 50200 is open on each of these 4 computers.
+
+3.2.2 The simulation
+
+a. Open a terminal and change directory to base directory.
+
+b. Copy sample LaBoGrid configuration file into "bin" directory with
+following command:
+
+                    cp samples/conf-distributed.xml bin/conf.xml
+
+The configuration file is renamed in order to comply with default script
+parameters.
+
+c. Change current directory to "bin".
+
+d. Edit "config-cluster.sh" file and update variables if necessary. It is likely
+that you will have to update the computer executing bootstrap worker
+(BOOTSTRAP_COMP) and the list of computers running the other workers
+(CLUSTER). Note that computers may be identified only by their host name or by
+a pair (user name, host name) using following notation:
+
+                                     user@host
+
+where user is the user name to use for connexion and host the host name.
+
+e. Edit "config-labogrid.sh" file and update variables if necessary. You may
+have to update the host name of the computer running the stand alone server
+(SA_HOST) and the TCP port the server is listening to (SA_PORT), as well as
+the TCP port LaBoGrid workers can listen to (WORK_PORT). Be sure that all given
+ports are open on associated computers.
+
+f. Open another terminal with the same current directory.
+
+g. In the new terminal, run the stand alone server using following command:
+
+                     ./startStandAloneServer.sh ail3 50200 out/
+
+"ail3" is the host name of the computer running the stand alone server and
+50200 the TCP port the server is listening to. Update these values in function
+of what you wrote in "config-labogrid.sh". "out" is the name of the directory
+where output files will be stored; this value can remain unchanged.
+
+h. Return to other terminal and start an SSH agent (in order to avoid to have to
+type password on every SSH connection). If you do not know how to do this,
+search for "ssh agent" on the Internet, tutorials are available aplenty.
+
+i. Install LaBoGrid and configuration files onto cluster computers by executing
+following command:
+
+                                  ./installAndCopy.sh
+
+j. Start all workers and wait the end of the simulation by executing following
+command:
+
+                               ./startWorkersAndWait.sh
+
+k. If all went well, 2 additional directories were created: "out" and
+"ssh-log". "ssh-log" contains log files about the execution of SSH processes.
+"out" contains the result of the simulation. This result can be used to resume
+the simulation or to be post-processed. In latter case, output should be
+converted into a readable format (see Section 3.3).
+
+l. Stop stand alone server by interrupting the process running in second
+terminal (use for example Ctrl-C shortkey).
+
+m. Clean cluster computers i.e. remove LaBoGrid, configuration files and log
+files:
+
+                              ./killClearAndUninstall.sh
+
+Warning about no java processes killed can safely be ignored. It is the expected
+result of above command because workers end their execution on their own.
+
+--------------------------------------------------------------------------------
+3.3 Converting output of simulations
+
+In both examples above, the result of the simulation is stored into "out"
+sub-directory of "bin" directory. The output files consist of files with "state"
+extension, containing the state of the flow, and a "mGraph.dat" file describing
+the way simulation's state is distributed among "state" files.
+
+The output files are generally not directly usable by another tool than
+LaBoGrid. Therefore, the way to convert these files into a more readable format
+is described in this section.
+
+a. Open a terminal and change directory to "bin" directory.
+
+b. Execute following command:
+
+                          ./convertOutput.sh out/ res XY 10
+
+First argument is the directory containing the output files to convert. Second
+argument is the prefix of the directory that will contain converted data.
+Third argument specifies that XY slices of the lattice are produced per file
+(other possible values are XZ and YZ) resulting from the conversion. Last
+argument gives the iteration reached by the simulation (state files are named
+using following scheme: x_y.state where x is a natural number and y the
+last iteration reached by the simulation).
+
+c. If all went well, an additional sub-directory was created: "res_10". This
+directory contains one file per slice of the lattice. For more details about
+produced files, see user's guide.
+
+================================================================================
+4. Troubleshooting
+
+For some reasons, problems may arise while executing LaBoGrid. While local
+executions, like the one described in Section 3.1, should not cause a lot of
+trouble, the distributed case of Section 3.2 is far more complex and
+error-prone.
+
+Most problems encountered come from an improper configuration of firewalls on
+cluster computers and stand alone server computer. Be sure that all required
+TCP ports are open on each computer.
+
+Another typical problem (that may arise with local simulations too) is a "wrong"
+configuration file making references to unknown classes or that cannot be
+validated by the associated schema. In this case, check your configuration file.
+
+The validation problem can come from the fact that the schema file is not
+accessible. Be sure that the configuration file
+does refer to it in the right way, either using an absolute path (which can be
+a URL) or a relative path; in this case, the path must be relative to the
+location of the configuration file. In the context of a distributed simulation,
+the schema file is always copied in the same directory as configuration file.
+
+In local case, above problems cause error messages to be displayed in the
+console. In distributed case, they can be diagnosed using log files containing
+the output of SSH processes executing the workers. These files are available
+by default in "ssh-log" sub-directory of "bin".
+
+For more subtle problems, finer grained log information may be required.
+In local case, the logs in "work_dir" subdirectory of "bin" may contain
+interesting messages. In particular, the file "*_DecentralLBController.log"
+should be read. In distributed case, these log files are available on computers
+executing the workers. "downloadLogs.sh" script downloads them locally in order
+to ease access to them.
+
+

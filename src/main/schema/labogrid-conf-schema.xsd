@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<xs:annotation>
+		<xs:documentation xml:lang="en">
+			This file contains the description of a configuration 
+			file of parameters for a LaBoGrid experiment.
+		</xs:documentation>
+	</xs:annotation>
+	
+	
+	
+	<!-- Global types -->
+	<xs:simpleType name="boolean">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="true"/>
+			<xs:enumeration value="false"/>
+		</xs:restriction>
+	</xs:simpleType>
+	
+	<xs:simpleType name="SolidFileType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ascii"/>
+			<xs:enumeration value="compressed-ascii"/>
+			<xs:enumeration value="bin"/>
+		</xs:restriction>
+	</xs:simpleType>
+	
+	
+	
+	<!-- LBConfiguration type declarations -->
+	<xs:complexType name="LatticeType">
+		<xs:attribute name="size" type="xs:string" use="required"/>
+		<xs:attribute name="class" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="SolidType">
+		<xs:attribute name="fileId" type="xs:string" use="required"/>
+		<xs:attribute name="type" type="SolidFileType" use="required"/>
+		<xs:attribute name="class" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="SubLatticesType">
+		<xs:attribute name="minSubLatticesCount" type="xs:integer" use="required"/>
+		<xs:attribute name="generatorClass" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="LBConfType">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Lattice" type="LatticeType"/>
+			<xs:element name="Solid" type="SolidType"/>
+			<xs:element name="SubLattices" type="SubLatticesType"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	
+		
+	<!-- Experiment type declarations -->
+	<xs:complexType name="InOutType">
+		<xs:attribute name="clientClass" type="xs:string" use="required"/>
+		<xs:attribute name="parameters" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="ExperimentType">
+		<xs:sequence minOccurs="1" maxOccurs="unbounded">
+			<xs:element name="SimulationSequence" type="SimulationSequenceType"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="SimulationType">
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:sequence minOccurs="1" maxOccurs="1">
+				<xs:element name="Input" type="InOutType"/>
+			</xs:sequence>
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="Output" type="InOutType"/>
+			</xs:sequence>
+		</xs:sequence>
+		<xs:attribute name="startingIteration" type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="iterationsCount" type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="processingChain" type="xs:string" use="required"/>
+		<xs:attribute name="lbConfiguration" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="NextSimulationType">
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="Input" type="InOutType"/>
+			</xs:sequence>
+			<xs:sequence minOccurs="0" maxOccurs="1">
+				<xs:element name="Output" type="InOutType"/>
+			</xs:sequence>
+		</xs:sequence>
+		<xs:attribute name="iterationsCount" type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="processingChain" type="xs:string" use="required"/>
+		<xs:attribute name="lbConfiguration" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="SimulationSequenceType">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Simulation" type="SimulationType"/>
+			<xs:sequence minOccurs="0" maxOccurs="unbounded">
+				<xs:element name="NextSimulation" type="NextSimulationType"/>
+			</xs:sequence>
+		</xs:sequence>
+	</xs:complexType>
+	
+	
+	<!-- ProcessingChains type declarations -->
+	<xs:complexType name="OperatorType">
+		<xs:attribute name="class" type="xs:string" use="required"/>
+		<xs:attribute name="parameters" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="LoggerType">
+		<xs:attribute name="id" type="xs:string" use="required"/>
+		<xs:attribute name="rate" type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="loggerClass" type="xs:string" use="required"/>
+		<xs:attribute name="loggerParameters" type="xs:string" use="required"/>
+		<xs:attribute name="clientClass" type="xs:string" use="required"/>
+		<xs:attribute name="clientParameters" type="xs:string" use="required"/>
+	</xs:complexType>
+	
+	<xs:group name="ProcChainElement">
+		<xs:choice>
+			<xs:element name="Operator" type="OperatorType"/>
+			<xs:element name="Logger" type="LoggerType"/>
+		</xs:choice>
+	</xs:group>
+	
+	<xs:complexType name="ProcChainType">
+		<xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:group ref="ProcChainElement"/>
+		</xs:sequence>
+		<xs:attribute name="id" type="xs:string"/>
+	</xs:complexType>
+
+	
+	<!-- LaBoGridMiddleware type declarations -->
+	<xs:complexType name="ConfSchedType">
+		<xs:attribute name="benchTO" type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="reconfTO" type="xs:nonNegativeInteger" use="required"/>
+		<xs:attribute name="brokenTO" type="xs:nonNegativeInteger" use="required"/>
+	</xs:complexType>
+	
+	<xs:complexType name="BenchmarkType">
+		<xs:attribute name="iterations" type="xs:string"
+			use="required" />
+		<xs:attribute name="refSizes" type="xs:string" use="required"></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="LoadBalancingType">
+		<xs:sequence minOccurs="0" maxOccurs="1">
+			<xs:element name="Benchmark" type="BenchmarkType" />
+		</xs:sequence>
+		<xs:attribute name="buildPowerModel" type="boolean"></xs:attribute>
+	</xs:complexType>
+
+	<xs:complexType name="FaultToleranceType">
+		<xs:attribute name="backupRate" type="xs:nonNegativeInteger"
+			use="required" />
+		<xs:attribute name="neighborsCount" type="xs:nonNegativeInteger"
+			use="required" />
+		<xs:attribute name="chunkSize" type="xs:nonNegativeInteger"
+			use="required" />
+		<xs:attribute name="compressFiles" type="StateFileContentType"
+			use="required" />
+		<xs:attribute name="replicationEnabled" type="boolean" use="required"/>
+	</xs:complexType>
+
+	<xs:complexType name="LBGMiddlewareType">
+		<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="Stabilizer" type="StabilizerType" />
+			<xs:element name="LoadBalancing" type="LoadBalancingType" />
+			<xs:element name="FaultTolerance" type="FaultToleranceType" />
+		</xs:sequence>
+	</xs:complexType>
+
+
+
+	<!-- Configuration file structure -->
+	<xs:element name="LaBoGridConfiguration">
+		<xs:complexType>
+			<xs:sequence minOccurs="1" maxOccurs="1">
+				<xs:element name="Experiment" type="ExperimentType" />
+				<xs:sequence minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="LBConfiguration"
+						type="LBConfType" />
+				</xs:sequence>
+				<xs:sequence minOccurs="1" maxOccurs="unbounded">
+					<xs:element name="ProcessingChain"
+						type="ProcChainType" />
+				</xs:sequence>
+				<xs:element name="LaBoGridMiddleware"
+					type="LBGMiddlewareType" />
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	
+
+	<xs:simpleType name="StateFileContentType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="compress"></xs:enumeration>
+			<xs:enumeration value="mixed"></xs:enumeration>
+			<xs:enumeration value="raw"></xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+
+
+
+	<xs:complexType name="StabilizerType">
+		<xs:attribute name="timeout" type="xs:nonNegativeInteger"></xs:attribute>
+	</xs:complexType>
+</xs:schema>

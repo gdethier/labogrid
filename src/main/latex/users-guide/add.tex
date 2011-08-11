@@ -1,0 +1,78 @@
+\chapter{Additional tools}
+\label{sec_add}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Result files converter}
+\label{sec_add_conv}
+
+Result files produced by LaBoGrid contain binary data (serialized objects).
+These data may be compressed. This format is not suitable if the content of
+these files must be processed using tools other than Java. Therefore, LaBoGrid
+provides a tool that converts the content of its binary result files
+into ``portable'' text files. These files contain macro variables such as
+density and speed evaluated at each point of the lattice.
+
+The conversion tool produces several output files: 1 per slice of the lattice
+(the user must choose if the tool will produce slices that are perpendicular to
+$x$-, $y$- or $z$-axis). Each file has name ``$\alpha$Slice\_$\beta$.txt'' where
+$\alpha$ is the slice type (xy, yz or xz) and $\beta$ the position of the slice.
+
+Each file contains $M$ lines, $M$ being the number of sites in each slice (all
+slices contain the same number of sites). A line has following format
+%
+\begin{center}
+$s_x$ $s_y$ $s_z$ $\frac{d}{3}$ $\sigma$
+\end{center}
+%
+where $s_i$ is the speed along $i$-axis, $d$ is the local density, $\sigma$ is a
+flag indicating if the site is an obstacle ($\sigma=1$) or fluid ($\sigma=0$).
+
+For example, let a lattice have size $(a, b, c)$:
+\begin{itemize}
+	\item with xy slice type, $c$ ``xySlice\_$i$.txt'' files are produced with $0
+	\leq i < c$,
+	\item with xz slice type, $b$ ``xzSlice\_$i$.txt'' files are produced with $0
+	\leq i < b$,
+	\item with yz slice type, $a$ ``yzSlice\_$i$.txt'' files are produced with $0
+	\leq i < a$.
+\end{itemize}
+
+Following pseudo-code illustrates the way data from converted files should be
+read for post-processing in the case xy slices where requested (other slice
+types are handled in a similar way). \texttt{xSize}, \texttt{ySize} and
+\texttt{zSize} are the size of the lattice along each axis.
+
+\begin{Verbatim}[tabsize=2,frame=lines]
+for(int z = 0; z < zSize; ++z) {
+    "Open file xySlice_z.txt" ;
+    for(int y = 0; y < ySize; ++y) {
+        for(int x = 0; x < xSize; ++x) {
+            "Parse next line of file (data associated to (x,y,z)" ;
+            "Exploit parsed data" ;
+        }
+    }
+    "Close file" ;
+}
+\end{Verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Stand alone server}
+\label{sec_add_sas}
+
+A Stand Alone Server (SAS) is instantiated on a computer in order to send input
+files to workers and receive result files or log data from them (see
+sections~\ref{sec_conf_exp_io} and~\ref{sec_conf_proc_log}).
+
+Following class provides the ``main'' method running a SAS when invoked:
+\begin{center}
+\texttt{laboGrid.standalone.StandAloneDistributedAgent}
+\end{center}
+
+A SAS takes 3 arguments:
+\begin{enumerate}
+	\item the host name of the computer hosting it,
+	\item the port the SAS should accept connections on,
+	\item the path to a folder where logs and temporary files are stored (created
+	if it does not exist).
+\end{enumerate}

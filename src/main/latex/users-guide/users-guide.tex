@@ -1,0 +1,34 @@
+\documentclass[a4paper]{report}
+\usepackage{pslatex}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{fancyvrb}
+
+\setlength{\parskip}{1ex}
+
+\title{User's Guide to LaBoGrid, a distributed Lattice Boltzmann-based
+simulation tool}
+\author{Gérard Dethier}
+\date{July 2011}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\include{change}
+\include{intro}
+\include{features}
+\include{arch}
+\include{config}
+\include{exec}
+\include{ext}
+\include{add}
+
+\bibliographystyle{plain}
+\clearpage
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{users-guide}
+
+\end{document}

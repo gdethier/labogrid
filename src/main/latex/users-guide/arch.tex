@@ -1,0 +1,101 @@
+\chapter{Architecture}
+\label{sec_arch}
+
+The architecture of LaBoGrid is briefly described in this chapter. Indeed,
+having an insight on LaBoGrid's inner workings is required in order to properly
+configure, deploy and expand it (see chapters~\ref{sec_conf} and \ref{sec_ext}).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{DiMaWo framework}
+\label{sec_arch_dimawo}
+
+\subsection{Agent-based programming}
+\label{sec_arch_dimawo_agents}
+
+LaBoGrid is based on DiMaWo framework which suggests an agent-based programming:
+an application based on DiMaWo is made of agents sending and receiving messages
+in an asynchronous way. These agents may be distributed across several
+computers. Agents may produce logs about their activity. A log level can be set
+in order to control the verbosity of agents.
+
+A distributed DiMaWo application (like LaBoGrid) consists of one
+process running per computer, each process executing one or several agents,
+provided by DiMaWo or the user.
+
+
+\subsection{Distributed master/worker model}
+\label{sec_arch_dimawo_model}
+
+The commonly used master/worker architectural model implies one master process
+that manages other worker processes. This model has 2 main drawbacks: the master
+both acts as a bottleneck and a single point of failure, hence posing
+scalability and robustness problems.
+
+DiMaWo provides a distributed master/worker architectural model
+which almost solves above problems. The main idea is
+that, instead of having one master managing all workers, a tree of
+master-workers is built, each master-worker managing a subset of available
+workers. A master-worker is a special worker which executes additional managing
+code. The root master-worker is the leader and may, as such, execute special
+code (for example, operations that should be executed by only one worker).
+This structure is called MN-tree~\cite{Dethier11}. MN-trees are robust thanks to a
+master-worker replacement policy: as soon as a master-worker is unexpectedly interrupted, a
+worker it managed takes its place.
+
+MN-trees have 2 parameters: the maximum number of workers managed by a
+master-worker and the number of master-worker children per master-worker.
+These 2 parameters tweak the scalability and the robustness of MN-trees:
+increasing the number of workers per master-worker increases robustness but may
+impair scalability and increasing the number of master-worker children per
+master-worker may increase the efficiency of some operations but increases the
+load on master-workers.
+
+
+\subsection{DiMaWo applications}
+\label{sec_arch_dimawo_apps}
+
+A DiMaWo application must implement at least 2 base agents: the worker agent and
+the master agent. The worker agent executes the code of a worker and the master
+agent executes the code of the leader. These 2 agents may access the services
+provided by DiMaWo: broadcasting, point-to-point communication, distributed
+file system, shared map, etc.
+
+In the context of LaBoGrid, worker agents execute simulation code. The master
+agent only triggers the simulations described in the configuration file, which
+is available for all workers (it must be given as input file).
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Load balancing}
+\label{sec_arch_load}
+
+LaBoGrid minimizes simulation execution time when executed on a heterogeneous
+cluster by optimizing computational load distribution and by minimizing
+communications. This is achieved by partitioning the lattice of a simulation
+into ``sublattices'' and distributing them among computers using the Modified
+Tree Walking Algorithm (MTWA)~\cite{Dethier11}.
+
+In order to work, MTWA needs a weight to be associated to each computer
+running a worker. This weight is measured by running benchmarks consisting of
+small simulations. 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Fault Tolerance}
+\label{sec_arch_fault}
+
+In order to be tolerant to the unexpected interruption of a worker's process, a
+scalable state replication scheme is used: each worker sends a copy of the
+state of the sublattices it is running a simulation on to several other workers
+which store the state on their computer's disk. This way, in case a worker's
+process is interrupted, the state of the sublattices it ``hosted'' may be
+retrieved from other workers and the simulation be restarted from last saved
+state.
+
+The workers a particular worker sends its state to, called ``replication
+nighbors'', are selected among the workers managed by the same master-worker
+as the worker. Consequently, the number of replication neighbors is at most the
+number of workers managed by a master-worker (one of the parameters of
+MN-trees).
+
