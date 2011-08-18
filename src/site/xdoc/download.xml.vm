@@ -33,6 +33,14 @@
 		Source code (tar.gz)</a></li>
 	</ul>
 	</subsection>
+	
+	<subsection name="Version control">
+	<p>DiMaWo's source code is available on <a href="https://github.com/">
+	GitHub</a> (repository "labogrid" of user "gdethier"). Feel free to fork the
+	project and, if you would like to
+	contribute, send pull requests (requires a free GitHub account).
+	</p>
+	</subsection>
 
 	</section>
   </body>
